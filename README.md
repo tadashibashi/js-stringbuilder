@@ -48,25 +48,13 @@ stringBuilder.splice(0, 1, "abc");
 let str = stringBuilder.str(); // "0abc234"
 ```
 
-## Known Issues
-
-In the case of prepending a string (insertion at index 0), 
-StringBuilder is slower compared to JavaScript strings due to shifting the 
-entire block of contiguous memory after the point of insertion. 
-This becomes noticeable with large string sizes as seen below.
-
-Performance Workaround:
-It's best to prepend larger blocks of data at once, rather
-than invoking many calls to insert. If granular prepending is absolutely needed, 
-do it first with a pure JS string, then prepend it to the StringBuilder.
-
 ## Performance Comparison
 
 |                        | StringBuilder                              | String                                    | Array\<string\>                           |
 |------------------------|--------------------------------------------|-------------------------------------------|-------------------------------------------|
-| 500,000 char appends   | <span style="color:green">3.98ms</span>    | 6.07ms                                    | 24.86ms                                   |
-| 500,000 mid-insertions | <span style="color:green">2462.58ms</span> | <span style="color:red">20876.14ms</span> | 9699.25ms                                 |
-| 500,000 char prepends  | 4796.53ms                                  | <span style="color:green">25.91ms</span>  | <span style="color:red">19722.63ms</span> |
+| 500,000 char appends   | <span style="color:green">5.26ms</span>    | 22.55ms                                   | 17.65ms                                   |
+| 500,000 mid-insertions | <span style="color:green">2465.29ms</span> | <span style="color:red">20761.87ms</span> | 9658.66ms                                 |
+| 500,000 char prepends  | 7.38ms                                     | <span style="color:green">25.65ms</span>  | <span style="color:red">19334.63ms</span> |
 
 These metrics were tested in Node v20.3.1 on an ARM MacOS 13.
 
