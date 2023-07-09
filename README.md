@@ -42,20 +42,11 @@ let str = stringBuilder.str(); // "0abc234"
 ## Known Issues
 
 In the case of prepending a string (insertion at index 0), 
-StringBuilder is slower compared to JavaScript strings.
-This is because of a trade-off of using a contiguous block of memory–
-we must shift the entire memory block after the point of insertion
-every time new data is inserted:
-```
-[n][e][w] <- "new" string to insert
-[a][b][c][d][e][f][g][h][0][0][0]
+StringBuilder is slower compared to JavaScript strings due to a trade-off of 
+using a contiguous block of memory. Namely, that we must shift the entire 
+block after the point of insertion every time new data is inserted.
 
-
-[n][e][w][a][b][c][d][e][f][g][h]
--------->
-The entirety of "abcdefgh" copied in shifted location.
-```
-On the other hand, StringBuilder is significantly faster at the other
+On the other hand, StringBuilder is significantly faster at other
 operations, such as mid-string insertion and appending. It also does not
 generate as much garbage, especially if string size is anticipated in advance.
 
