@@ -12,11 +12,13 @@ Under the hood it uses a contiguous block of memory
 not unlike C++ strings, or C#/Java StringBuilder.
 
 ## Features
-
-- negative index notation a-la Python
-- insertion, splicing, append with strings and array-likes of utf-16 chars or char codes
-- search/replace via regexp(in-progress)
-- find functions as found in string
+- Fast, efficient
+- Light on the garbage collector
+- Clean, convenient API
+    - negative index notation a-la Python
+    - insertion, splicing, append with strings and array-likes of utf-16 chars or char codes
+    - search/replace via regexp(in-progress)
+    - find functions as found in string
 
 ## Example Usage
 
@@ -53,8 +55,10 @@ StringBuilder is slower compared to JavaScript strings due to shifting the
 entire block of contiguous memory after the point of insertion. 
 This becomes noticeable with large string sizes as seen below.
 
-Therefore, it's best to prepend larger blocks of data at once, rather
-than invoking many calls to insert.
+Performance Workaround:
+It's best to prepend larger blocks of data at once, rather
+than invoking many calls to insert. If granular prepending is absolutely needed, 
+do it first with a pure JS string, then prepend it to the StringBuilder.
 
 ## Performance Comparison
 
