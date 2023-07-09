@@ -14,6 +14,21 @@ sequence generated via concatenation, slicing, etc.
 StringBuilder attempts to provide an efficient way to dynamically 
 build JavaScript strings, friendly toward the garbage collector.
 
+## Getting Started
+Build JavaScript and type information files to `lib/`:
+
+with yarn:
+```shell
+yarn install
+yarn build
+```
+
+with npm:
+```shell
+npm i
+npm run build
+```
+
 ## Example Usage
 
 Create a StringBuilder and retrieve its inner string.
