@@ -1,8 +1,10 @@
 {
   "name": "js-stringbuilder",
+  "version": "0.0.1",
   "packageManager": "yarn@3.6.1",
   "scripts": {
-    "test": "jest"
+    "test": "jest",
+    "build": "tsc"
   },
   "devDependencies": {
     "@types/jest": "^29.5.2",

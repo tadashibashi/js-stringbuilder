@@ -8,13 +8,32 @@ const StringBuilderMinSize = 24;
  * - All arguments representing index may use negative numbers à la Python.
  */
 export class StringBuilder {
+    // ===== Class variables ==================================================
+
+    // Static decoder to convert buffer to utf-16 strings
     protected static decoder: TextDecoder;
 
+
+    // ===== Instance variables ===============================================
+
+    // Internal string buffer
     private _str: Uint16Array;
+
+    // "Pointer" to end of string, since buffer is usually larger
     private _length: number;
-    private _isDirty: boolean;
-    private _toPrepend?: StringBuilder;
-    private _temp: string;
+
+    // Temp buffer for efficient prepending, left undefined, it
+    // will go unused.
+    private readonly _toPrepend?: StringBuilder;
+
+    // These temp vars make it efficient to call str() multiple times
+    // without having to regenerate string with decoder every time.
+    private _temp: string;     // temp string stored for easy access
+    private _isDirty: boolean; // flagged when string has changed, updates
+                               // `_temp` during any calls to str
+
+
+    // ===== constructor ======================================================
 
     /**
      * @param str - initial string to copy into buffer
@@ -53,21 +72,18 @@ export class StringBuilder {
         }
     }
 
-    /**
-     * Length of the represented string (not the buffer).
-     * For buffer length, use `StringBuilder#__buffer.length`
-     */
-    get length(): number {
-        this._applyPrepend();
-        return this._length;
-    }
+
+    // ===== Mutating/setter functions ========================================
+
 
     /**
      * Ensures buffer will fit at least `size` number of chars.
-     * This prevents dynamic size increase if the necessary string length is known in advance.
+     * This prevents dynamic size increase if the necessary string length
+     * is known in advance.
      * @param size - number of chars to fit
+     * @returns this StringBuilder instance for chained calls
      */
-    reserve(size: number) {
+    reserve(size: number): StringBuilder {
         this._applyPrepend();
         this._expand(size);
         return this;
@@ -80,7 +96,7 @@ export class StringBuilder {
      * `length-index` will simply delete all chars from index until end.
      * Specify `0` if you only intend on inserting.
      * @param toAdd - any string or array of char/codes to add
-     * @returns this StringBuilder for chained calls.
+     * @returns this StringBuilder instance for chained calls.
      */
     splice(index: number, delCount: number, toAdd: string | ArrayLike<string> | ArrayLike<number> = ""): StringBuilder {
         if (delCount === 0 && toAdd.length === 0) return this;
@@ -113,9 +129,26 @@ export class StringBuilder {
         return this;
     }
 
-
+    /**
+     * Prepend a sequence of char codes to the StringBuilder.
+     * Please prefer to use this function rather than `insert(0, charCodes)`
+     * @param charCodes - array of char codes to prepend
+     * @returns this StringBuilder instance for chained calls
+     */
     prepend(charCodes: ArrayLike<number>): StringBuilder;
+    /**
+     * Prepend a sequence of chars to the StringBuilder.
+     * Please prefer to use this function rather than `insert(0, chars)`
+     * @param chars - array of chars to prepend
+     * @returns this StringBuilder instance for chained calls
+     */
     prepend(chars: ArrayLike<string>): StringBuilder;
+    /**
+     * Prepend a string to the StringBuilder.
+     * Please prefer to use this function rather than `insert(0, str)`
+     * @param str - string to prepend
+     * @returns this StringBuilder instance for chained calls
+     */
     prepend(str: string): StringBuilder;
     prepend(strOrArray: string | ArrayLike<string> | ArrayLike<number>): StringBuilder {
         if (strOrArray.length === 0) return this;
@@ -171,21 +204,21 @@ export class StringBuilder {
 
     /**
      * Write into the buffer, overwriting any underlying data. Writes beyond StringBuilder's length
-     * will increase it.
+     * will increase its size.
      * @param index - index to start writing to
      * @param str - string to write into the buffer
      */
     write(index: number, str: string): StringBuilder;
     /**
      * Write into the buffer, overwriting any underlying data. Writes beyond StringBuilder's length
-     * will increase it.
+     * will increase its size.
      * @param index - index to start writing to
      * @param charCodes - array to write into the buffer
      */
     write(index: number, charCodes: ArrayLike<number>): StringBuilder;
     /**
      * Write into the buffer, overwriting any underlying data. Writes beyond StringBuilder's length
-     * will increase it.
+     * will increase its size.
      * @param index - index to start writing to
      * @param chars - array to write into the buffer
      */
@@ -383,6 +416,15 @@ export class StringBuilder {
     // ===== Get / Read =======================================================
 
     /**
+     * Length of the represented string (not the buffer).
+     * For buffer length, use `StringBuilder#__buffer.length`
+     */
+    get length(): number {
+        this._applyPrepend();
+        return this._length;
+    }
+
+    /**
      * Gets character at the given index.
      * Negative numbers count from last index: length + index
      * @param index
@@ -469,7 +511,7 @@ export class StringBuilder {
 
     /**
      * The size of the internal buffer in utf-16 chars.
-     * Actual size in bytes is twice this number.
+     * (Actual size in bytes is twice this number)
      */
     get bufferLength(): number {
         this._applyPrepend();
@@ -477,7 +519,12 @@ export class StringBuilder {
         return this._str.length;
     }
 
-    search(query: RegExp | string) {
+    /**
+     * Get the index of the first occurrence of a string or RegExp.
+     * @param query - query to find
+     * @returns index of the first occurrence or -1 if it does not exist.
+     */
+    search(query: RegExp | string): number {
         if (typeof query === "string") {
             if (query.length === 0 || this._length === 0) return -1;
 
