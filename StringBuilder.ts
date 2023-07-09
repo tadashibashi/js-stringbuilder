@@ -155,6 +155,7 @@ export class StringBuilder {
         }
 
         this._length = newLength;
+        this._isDirty = true;
         return this;
     }
 
