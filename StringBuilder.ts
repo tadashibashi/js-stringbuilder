@@ -121,6 +121,43 @@ export class StringBuilder {
         return this.splice(index, 0, strOrArray);
     }
 
+    /**
+     * Write into the buffer, overwriting any underlying data. Writes beyond StringBuilder's length
+     * will increase it.
+     * @param index - index to start writing to
+     * @param str - string to write into the buffer
+     */
+    write(index: number, str: string): StringBuilder;
+    /**
+     * Write into the buffer, overwriting any underlying data. Writes beyond StringBuilder's length
+     * will increase it.
+     * @param index - index to start writing to
+     * @param charCodes - array to write into the buffer
+     */
+    write(index: number, charCodes: ArrayLike<number>): StringBuilder;
+    /**
+     * Write into the buffer, overwriting any underlying data. Writes beyond StringBuilder's length
+     * will increase it.
+     * @param index - index to start writing to
+     * @param chars - array to write into the buffer
+     */
+    write(index: number, chars: ArrayLike<string>): StringBuilder;
+    write(index: number, strOrArray: string | ArrayLike<string> | ArrayLike<number>): StringBuilder {
+        if (strOrArray.length === 0) return this;
+
+        const newLength = Math.max(index + strOrArray.length, this._length);
+        this._expand(newLength);
+
+        if (typeof strOrArray === "string") {
+            this._writeString(strOrArray, index);
+        } else {
+            this._writeArray(strOrArray, index);
+        }
+
+        this._length = newLength;
+        return this;
+    }
+
 
     /**
      * Get the current buffer as a string.
