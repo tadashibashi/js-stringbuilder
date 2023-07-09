@@ -13,7 +13,8 @@ describe("substring", () => {
     });
 
     test("out-of-range: end: throws", () => {
-        const sb = new StringBuilder("");
+        const sb = new StringBuilder("0");
+        expect(() => sb.substring(1)).toThrow(RangeError);
     });
 
     test("mid section", () => {
@@ -22,5 +23,10 @@ describe("substring", () => {
         expect(sb.substring(2, 4)).toBe("23");
         expect(sb.substring(1, 4)).toBe("123");
         expect(sb.substring(2)).toBe("234");
+    });
+
+    test("too long length, does not throw", () => {
+        const sb = new StringBuilder("01234");
+        expect(() => sb.substring(0, 100)).not.toThrow();
     });
 });
