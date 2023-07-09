@@ -13,6 +13,7 @@ export class StringBuilder {
     private _str: Uint16Array;
     private _length: number;
     private _isDirty: boolean;
+    private _toPrepend: StringBuilder;
     private _temp: string;
 
     /**
@@ -27,6 +28,7 @@ export class StringBuilder {
         this._length = 0;
         this._isDirty = false;
         this._temp = "";
+        this._toPrepend = new StringBuilder();
 
         if (strOrSize) {
             if (typeof strOrSize === "string") {
