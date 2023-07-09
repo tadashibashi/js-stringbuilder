@@ -11,6 +11,13 @@ garbage collector for dynamically building JavaScript strings.
 Under the hood it uses a contiguous block of memory
 not unlike C++ strings, or C#/Java StringBuilder.
 
+## Features
+
+- negative index notation a-la Python
+- insertion, splicing, append with strings and array-likes of utf-16 chars or char codes
+- search/replace via regexp(in-progress)
+- find functions as found in string
+
 ## Example Usage
 
 Create a StringBuilder and retrieve its inner string.
@@ -60,3 +67,8 @@ than invoking many calls to insert.
 These metrics were tested in Node v20.3.1 on an ARM MacOS 13.
 
 Please feel free to run the tests on your own machine via `yarn test` or `npm run test`
+
+## To-do
+- [ ] find, findLastOf, findAll
+- [ ] incorporate regexp
+- [ ] documentation
