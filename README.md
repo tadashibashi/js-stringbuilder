@@ -2,23 +2,19 @@
 
 A dynamic string class for efficient manipulation
 
-## Why
-JavaScript strings are immutable primitives that create garbage for every unique sequence generated via assignment, concatenation, slicing, etc.
-
-This StringBuilder class attempts to provide an efficient solution, light on the 
-garbage collector for dynamically building JavaScript strings. 
-
-Under the hood it uses a contiguous block of memory
-not unlike C++ strings, or C#/Java StringBuilder.
-
 ## Features
-- Fast, efficient
-- Light on the garbage collector
-- Clean, convenient API
-    - negative index notation a-la Python
-    - insertion, splicing, append with strings and array-likes of utf-16 chars or char codes
-    - search/replace via regexp(in-progress)
-    - find functions as found in string
+- Array-like flexibility to control strings
+- Automatic memory management with ability to allocate or shrink space as needed.
+- Convenient API
+    - negative indices behave like Python
+    - extends the String interface (work in-progress)
+
+## Why
+JavaScript strings are immutable primitives that create garbage for every unique 
+sequence generated via concatenation, slicing, etc.
+
+StringBuilder attempts to provide an efficient way to dynamically 
+build JavaScript strings, easier on the garbage collector.
 
 ## Example Usage
 
@@ -54,7 +50,7 @@ let str = stringBuilder.str(); // "0abc234"
 |------------------------|--------------------------------------------|-------------------------------------------|-------------------------------------------|
 | 500,000 char appends   | <span style="color:green">5.26ms</span>    | 22.55ms                                   | 17.65ms                                   |
 | 500,000 mid-insertions | <span style="color:green">2465.29ms</span> | <span style="color:red">20761.87ms</span> | 9658.66ms                                 |
-| 500,000 char prepends  | 7.38ms                                     | <span style="color:green">25.65ms</span>  | <span style="color:red">19334.63ms</span> |
+| 500,000 char prepends  | <span style="color:green">7.38ms</span>    | 25.65ms                                   | <span style="color:red">19334.63ms</span> |
 
 These metrics were tested in Node v20.3.1 on an ARM MacOS 13.
 
