@@ -113,23 +113,6 @@ export class StringBuilder {
         return this;
     }
 
-    private _applyPrepend() {
-        if (!this._toPrepend) return;
-
-        if (this._toPrepend._length) {
-            this._expand(this._toPrepend._length + this._length);
-            this._str.copyWithin(this._toPrepend._length, 0, this._length);
-
-            for (let i = 0; i < this._toPrepend._length; ++i) {
-                this._str[i] = this._toPrepend._str[this._toPrepend._length-1-i];
-            }
-
-            this._length += this._toPrepend._length;
-
-            this._isDirty = true;
-            this._toPrepend.clear();
-        }
-    }
 
     prepend(charCodes: ArrayLike<number>): StringBuilder;
     prepend(chars: ArrayLike<string>): StringBuilder;
@@ -244,6 +227,10 @@ export class StringBuilder {
         return this;
     }
 
+    public match(query: string | RegExp) {
+        return this.str().match(query);
+    }
+
 
     /**
      * Get the current buffer as a string.
@@ -314,7 +301,7 @@ export class StringBuilder {
     }
 
     /**
-     * Clears the string, effectively setting its length to 0.
+     * Clear the string, effectively setting its length to 0.
      */
     public clear() {
         if (this._length !== 0) {
@@ -368,6 +355,28 @@ export class StringBuilder {
             const temp = this._str;
             this._str = new Uint16Array((size + 1) * 2);
             this._str.set(temp);
+        }
+    }
+
+    /**
+     * Take anything in the prepend buffer and apply it to the main buffer.
+     * Empties prepend buffer after operation is performed.
+     */
+    private _applyPrepend() {
+        if (!this._toPrepend) return;
+
+        if (this._toPrepend._length) {
+            this._expand(this._toPrepend._length + this._length);
+            this._str.copyWithin(this._toPrepend._length, 0, this._length);
+
+            for (let i = 0; i < this._toPrepend._length; ++i) {
+                this._str[i] = this._toPrepend._str[this._toPrepend._length-1-i];
+            }
+
+            this._length += this._toPrepend._length;
+
+            this._isDirty = true;
+            this._toPrepend.clear();
         }
     }
 
@@ -466,6 +475,30 @@ export class StringBuilder {
         this._applyPrepend();
 
         return this._str.length;
+    }
+
+    search(query: RegExp | string) {
+        if (typeof query === "string") {
+            if (query.length === 0 || this._length === 0) return -1;
+
+            const end = this._length - query.length + 1;
+            for (let i = 0; i < end; ++i) {
+                let match = true;
+                for (let j = 0; j < query.length; ++j) {
+                    if (this._str[i + j] !== query.charCodeAt(j)) {
+                        match = false;
+                        break;
+                    }
+                }
+
+                if (match)
+                    return i;
+            }
+
+            return -1;
+        } else {
+            return this.str().search(query);
+        }
     }
 
 
