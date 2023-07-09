@@ -13,7 +13,7 @@ export class StringBuilder {
     private _str: Uint16Array;
     private _length: number;
     private _isDirty: boolean;
-    private _toPrepend: StringBuilder;
+    private readonly _toPrepend: StringBuilder | null;
     private _temp: string;
 
     /**
@@ -22,13 +22,18 @@ export class StringBuilder {
     constructor(str?: string);
     /**
      * @param size - initial size of the buffer
+     * @param __usePrependBuffer - for library use only
      */
-    constructor(size?: number);
-    constructor(strOrSize?: string | number) {
+    constructor(size?: number, __usePrependBuffer?: boolean);
+    constructor(strOrSize?: string | number, __usePrependBuffer: boolean = true) {
         this._length = 0;
         this._isDirty = false;
         this._temp = "";
-        this._toPrepend = new StringBuilder();
+
+        if (__usePrependBuffer)
+            this._toPrepend = new StringBuilder(StringBuilderMinSize, false);
+        else
+            this._toPrepend = null;
 
         if (strOrSize) {
             if (typeof strOrSize === "string") {
@@ -50,7 +55,10 @@ export class StringBuilder {
      * Length of the represented string (not the buffer).
      * For buffer length, use `StringBuilder#__buffer.length`
      */
-    get length(): number { return this._length; }
+    get length(): number {
+        this._applyPrepend();
+        return this._length;
+    }
 
     /**
      * Ensures buffer will fit at least `size` number of chars.
@@ -58,6 +66,7 @@ export class StringBuilder {
      * @param size - number of chars to fit
      */
     reserve(size: number) {
+        this._applyPrepend();
         this._expand(size);
         return this;
     }
@@ -73,6 +82,8 @@ export class StringBuilder {
      */
     splice(index: number, delCount: number, toAdd: string | ArrayLike<string> | ArrayLike<number> = ""): StringBuilder {
         if (delCount === 0 && toAdd.length === 0) return this;
+
+        this._applyPrepend();
 
         if (delCount !== 0)
             delCount = Math.max(Math.min(this._length-index, delCount), 0);
@@ -100,6 +111,55 @@ export class StringBuilder {
         return this;
     }
 
+    private _applyPrepend() {
+        if (!this._toPrepend) return;
+
+        if (this._toPrepend._length) {
+            this._expand(this._toPrepend._length + this._length);
+            this._str.copyWithin(this._toPrepend._length, 0, this._length);
+
+            for (let i = 0; i < this._toPrepend._length; ++i) {
+                this._str[i] = this._toPrepend._str[this._toPrepend._length-1-i];
+            }
+
+            this._length += this._toPrepend._length;
+
+            this._isDirty = true;
+            this._toPrepend.clear();
+        }
+    }
+
+    prepend(charCodes: ArrayLike<number>): StringBuilder;
+    prepend(chars: ArrayLike<string>): StringBuilder;
+    prepend(str: string): StringBuilder;
+    prepend(strOrArray: string | ArrayLike<string> | ArrayLike<number>): StringBuilder {
+        if (strOrArray.length === 0) return this;
+        if (!this._toPrepend) { return this.insert(0, strOrArray); }
+
+        this._toPrepend._expand(this._toPrepend._length + strOrArray.length);
+
+        const inputLen = strOrArray.length;
+        if (typeof strOrArray === "string") {
+            for (let i = 0; i < inputLen; ++i) {
+                this._toPrepend._str[this._toPrepend._length + i] = strOrArray.charCodeAt(inputLen-1-i);
+            }
+        } else {
+            if (typeof strOrArray[0] === "string") {
+                for (let i = 0; i < strOrArray.length; ++i) {
+                    this._toPrepend._str[this._toPrepend._length + i] =
+                        (strOrArray[inputLen-1-i] as string).charCodeAt(0);
+                }
+            } else {
+                for (let i = 0; i < strOrArray.length; ++i) {
+                    this._toPrepend._str[this._toPrepend._length + i] = strOrArray[inputLen-1-i] as number;
+                }
+            }
+        }
+        this._toPrepend._length += inputLen;
+        this._isDirty = true;
+        return this;
+    }
+
     /**
      * Insert an array of char codes within the StringBuilder.
      * Most efficient type to copy since strings must be converted into numbers first.
@@ -119,6 +179,7 @@ export class StringBuilder {
      * @param str - string to copy.
      */
     insert(index: number, str: string): StringBuilder;
+    insert(index: number, strOrArray: string | ArrayLike<string> | ArrayLike<number>): StringBuilder;
     insert(index: number, strOrArray: string | ArrayLike<string> | ArrayLike<number>): StringBuilder {
         return this.splice(index, 0, strOrArray);
     }
@@ -147,6 +208,8 @@ export class StringBuilder {
     write(index: number, strOrArray: string | ArrayLike<string> | ArrayLike<number>): StringBuilder {
         if (strOrArray.length === 0) return this;
 
+        this._applyPrepend();
+
         const newLength = Math.max(index + strOrArray.length, this._length);
         this._expand(newLength);
 
@@ -167,6 +230,8 @@ export class StringBuilder {
      * free buffer memory to the GC.
      */
     public shrink() {
+        this._applyPrepend();
+
         const newBufLength = Math.max(StringBuilderMinSize, (this._length + 1) * 2);
         if (this._str.length < newBufLength) return this;
 
@@ -189,6 +254,7 @@ export class StringBuilder {
     public str(str: string): StringBuilder;
     public str(str?: string): string | StringBuilder {
         if (str === undefined) {
+            this._applyPrepend();
             // Get inner string
             if (this._isDirty) {
                 this._temp = StringBuilder.decoder.decode(
@@ -202,6 +268,9 @@ export class StringBuilder {
                 this._str[i] = str.charCodeAt(i);
             }
             this._length = str.length;
+
+            if (this._toPrepend)
+                this._toPrepend.clear();
 
             this._temp = str; // okay to set here since str primitive is most likely already somewhere in memory.
             this._isDirty = false;
@@ -228,7 +297,7 @@ export class StringBuilder {
     append(chars: ArrayLike<string>): StringBuilder;
     public append(str: string | ArrayLike<number> | ArrayLike<string>): StringBuilder {
         if (str.length === 0) return this;
-
+        this._applyPrepend();
         this._expand(this._length + str.length);
 
         if (typeof str === "string") {
@@ -280,6 +349,8 @@ export class StringBuilder {
      * @private
      */
     private _writeString(str: string, index: number) {
+        this._applyPrepend();
+
         for (let i = 0; i < str.length; ++i) {
             this._str[i + index] = str.charCodeAt(i);
         }
@@ -307,6 +378,7 @@ export class StringBuilder {
      * @throws {RangeError} on invalid index
      */
     charAt(index: number): string {
+        this._applyPrepend();
         index = this._validateIndex(index);
         return String.fromCharCode(this._str[index]);
     }
@@ -318,6 +390,7 @@ export class StringBuilder {
      * @throws {RangeError} on invalid index
      */
     charCodeAt(index: number): number {
+        this._applyPrepend();
         index = this._validateIndex(index);
         return this._str[index];
     }
@@ -327,6 +400,8 @@ export class StringBuilder {
      * @param str
      */
     equals(str: string | StringBuilder): boolean {
+        this._applyPrepend();
+
         if (str.length !== this.length) return false;
         if (Object.is(this, str)) return true;
 
@@ -344,6 +419,8 @@ export class StringBuilder {
     }
 
     toArray(): Array<string> {
+        this._applyPrepend();
+
         const ret = new Array<string>(this.length);
         const length = this._length;
 
@@ -363,6 +440,8 @@ export class StringBuilder {
      * @throws {RangeError} if `start` is out of range.
      */
     substring(start: number, end?: number): string {
+        this._applyPrepend();
+
         start = this._validateIndex(start);
 
         if (end === undefined) {
@@ -382,6 +461,8 @@ export class StringBuilder {
      * Actual size in bytes is twice this number.
      */
     get bufferLength(): number {
+        this._applyPrepend();
+
         return this._str.length;
     }
 
@@ -395,6 +476,7 @@ export class StringBuilder {
      * @private
      */
     private _validateIndex(index: number, allowEnd: boolean = false): number {
+
         if (index < 0)
             index += this._length;
 

@@ -69,7 +69,7 @@ test("StringBuilder#insert beginning vs string", () => {
     const sbStart = performance.now();
     const sb = new StringBuilder(ITERATIONS);
     for (let i = 0; i < ITERATIONS; ++i) {
-        sb.insert(0, RandText[i]);
+        sb.prepend(RandText[i]);
     }
     const str2 = sb.toString();
     const sbTotal = performance.now() - sbStart;
