@@ -159,6 +159,22 @@ export class StringBuilder {
         return this;
     }
 
+    /**
+     * Shrinks buffer to fit current string.
+     * Intended use case: if string becomes significantly shorter and remaining buffer is huge,
+     * free buffer memory to the GC.
+     */
+    public shrink() {
+        const newBufLength = Math.max(StringBuilderMinSize, (this._length + 1) * 2);
+        if (this._str.length < newBufLength) return this;
+
+        const temp = this._str;
+        this._str = new Uint16Array(newBufLength);
+        this._str.set(temp.subarray(0, this._length));
+
+        return this;
+    }
+
 
     /**
      * Get the current buffer as a string.
