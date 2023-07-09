@@ -1,8 +1,6 @@
 # JavaScript StringBuilder
 
 A dynamic string class for efficient manipulation
-
-## Features
 - Array-like flexibility to control strings
 - Automatic memory management with ability to allocate or shrink space as needed.
 - Convenient API
@@ -14,7 +12,7 @@ JavaScript strings are immutable primitives that create garbage for every unique
 sequence generated via concatenation, slicing, etc.
 
 StringBuilder attempts to provide an efficient way to dynamically 
-build JavaScript strings, easier on the garbage collector.
+build JavaScript strings, friendly toward the garbage collector.
 
 ## Example Usage
 
@@ -57,6 +55,6 @@ These metrics were tested in Node v20.3.1 on an ARM MacOS 13.
 Please feel free to run the tests on your own machine via `yarn test` or `npm run test`
 
 ## To-do
-- [ ] find, findLastOf, findAll
-- [ ] incorporate regexp
+- [x] search
+- [x] incorporate regexp
 - [ ] documentation
