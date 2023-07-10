@@ -129,6 +129,8 @@ export class StringBuilder {
         return this;
     }
 
+
+
     /**
      * Prepend a sequence of char codes to the StringBuilder.
      * Please prefer to use this function rather than `insert(0, charCodes)`
@@ -239,6 +241,35 @@ export class StringBuilder {
 
         this._length = newLength;
         this._isDirty = true;
+        return this;
+    }
+
+    public replace(query: string | RegExp, value: string) {
+        this._applyPrepend();
+
+        if (typeof query === "string") {
+            if (query.length === 0) return this;
+
+            const idx = this.search(query);
+            if (idx === -1)
+                return this;
+
+            const newLength = this._length + value.length - query.length
+
+            this._expand(newLength);
+            this._str.copyWithin(idx + value.length - query.length,
+                idx + query.length, this._length);
+
+            for (let i = 0; i < value.length; ++i) {
+                this._str[i + idx] = value.charCodeAt(i);
+            }
+
+            this._length = newLength;
+            this._isDirty = true;
+        } else {
+            this.str(this.str().replace(query, value));
+        }
+
         return this;
     }
 
