@@ -73,22 +73,22 @@ export class StringBuilder {
 
 
     /**
-     * Append an array of chars to the end of the StringBuilder.
-     * @param str - a string or array of single character strings or char codes to add
+     * Append characters to the end of the StringBuilder.
+     * @param strOrArray - may be a string or array or characters or char codes.
      * @returns This Stringbuilder for chained calls.
      */
-    append(str: string | ArrayLike<number> | ArrayLike<string>): StringBuilder {
-        if (str.length === 0) return this;
+    append(strOrArray: string | ArrayLike<number> | ArrayLike<string>): StringBuilder {
+        if (strOrArray.length === 0) return this;
         this._applyPrepend();
-        this._expand(this._length + str.length);
+        this._expand(this._length + strOrArray.length);
 
-        if (typeof str === "string") {
-            this._writeString(str, this._length);
+        if (typeof strOrArray === "string") {
+            this._writeString(strOrArray, this._length);
         } else {
-            this._writeArray(str, this._length);
+            this._writeArray(strOrArray, this._length);
         }
 
-        this._length += str.length;
+        this._length += strOrArray.length;
         this._isDirty = true;
         return this;
     }
