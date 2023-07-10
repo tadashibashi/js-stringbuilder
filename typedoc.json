@@ -1,0 +1,13 @@
+{
+  "name": "JS StringBuilder",
+  "plugin": ["@mxssfd/typedoc-theme"],
+  "theme": "my-theme",
+  "darkHighlightTheme": "material-theme",
+  "includeVersion": true,
+  "customCss": "./styles.css",
+  "out": "./docs",
+  "tsconfig": "./tsconfig.json",
+  "entryPoints": ["./StringBuilder.ts"],
+  "hideGenerator": true,
+  "searchInComments": true
+}

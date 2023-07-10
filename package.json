@@ -7,8 +7,8 @@
     "test": "jest tests/functions",
     "test:perf": "jest tests/performance",
     "build": "tsc",
-    "docs:watch": "typedoc StringBuilder.ts --plugin @mxssfd/typedoc-theme --theme my-theme --darkHighlightTheme monokai --name 'JS StringBuilder' --watch --includeVersion",
-    "docs": "typedoc StringBuilder.ts --plugin @mxssfd/typedoc-theme --theme my-theme --darkHighlightTheme monokai --name 'JS StringBuilder' --includeVersion",
+    "docs:watch": "typedoc --options typedoc.json --watch",
+    "docs": "typedoc --options typedoc.json",
     "predeploy:docs": "yarn docs",
     "deploy:docs": "gh-pages -d docs"
   },
