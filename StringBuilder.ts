@@ -553,14 +553,40 @@ export class StringBuilder {
     /**
      * Get the index of the first occurrence of a string or RegExp.
      * @param query - query to find
+     * @param startAt - start position to search from. Default: 0
+     * @param end - optional end index to search until. Does not this search index.
+     * Default: reaches end of string.
      * @returns index of the first occurrence or -1 if it does not exist.
+     * @throws {RangeError} if `startingAt` is out of range. `end` may exceed range.
      */
-    search(query: RegExp | string): number {
+    search(query: RegExp | string, startAt: number = 0, end?: number): number {
+        if (this._length === 0) return -1;
+
+        try {
+            startAt = this._validateIndex(startAt, false);
+        } catch(err: unknown) {
+            console.error("[StringBuilder#search: startAt]", err);
+            throw err;
+        }
+
         if (typeof query === "string") {
             if (query.length === 0 || this._length === 0) return -1;
 
-            const end = this._length - query.length + 1;
-            for (let i = 0; i < end; ++i) {
+            if (end === undefined) {
+                end = this._length - query.length + 1;
+            } else {
+                end = Math.min(end, this._length - query.length + 1);
+            }
+
+            try {
+                end = this._validateIndex(end, true);
+            } catch(err: unknown) {
+                console.error("[StringBuilder#search: end]", err);
+                throw err;
+            }
+
+
+            for (let i = startAt; i < end; ++i) {
                 let match = true;
                 for (let j = 0; j < query.length; ++j) {
                     if (this._str[i + j] !== query.charCodeAt(j)) {
@@ -575,7 +601,14 @@ export class StringBuilder {
 
             return -1;
         } else {
-            return this.str().search(query);
+            if (end === undefined)
+                end = this._length;
+            else
+                end = this._validateIndex(end, true);
+
+            const res = this.substring(startAt, end).search(query);
+
+            return res === -1 ? -1 : res + startAt;
         }
     }
 
