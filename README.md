@@ -70,6 +70,7 @@ let str = stringBuilder.str(); // "0abc234"
 | 1mill char appends   | <span style="color:green">6.90ms</span>  | 51.77ms                                   | 30.11ms                                   |
 | 1mill mid-insertions | 9735.18ms                                | <span style="color:red">72645.41ms</span> | <span style="color:red">88937.65ms</span> |
 | 1mill char prepends  | <span style="color:green">38.18ms</span> | 52.75ms                                   | <span style="color:red">80454.23ms</span> |
+
 These metrics were tested in Node v20.3.1 on an ARM MacOS 13.
 
 To run the tests on your own machine: via `yarn test` or `npm run test`
