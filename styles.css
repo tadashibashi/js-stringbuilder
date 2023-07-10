@@ -1,0 +1,101 @@
+html {
+    scroll-padding-top: 3rem;
+    scroll-behavior: smooth;
+}
+
+td {
+    padding: 0 1vmin;
+    text-align: right;
+}
+
+section {
+    margin: 5vmin 0;
+}
+
+h2 {
+    font-size: 1.8rem;
+    border-bottom: #3d3d3d 1px solid;
+    padding-bottom: 0.5vmin;
+}
+
+
+h3 {
+    font-size: 1.4rem;
+    font-weight: normal;
+    font-style: italic;
+
+}
+
+.tsd-member .tsd-anchor + h3 {
+    border-bottom: #3d3d3d 1px solid;
+    margin-bottom: 1rem;
+    padding-bottom: .5rem;
+    width: auto;
+    display: inline-block;
+
+
+    color: rgb(162, 120, 245);
+}
+
+.tsd-signatures h4 {
+    margin-top: 1.2rem;
+    margin-bottom: .8rem;
+    font-size: 1.2rem;
+    font-weight: normal;
+}
+
+h4 + p {
+    padding-left: 1.2rem;
+}
+
+.tsd-sources {
+    margin-top: 2rem;
+}
+
+.tsd-sources a {
+    color: #c7c7c7;
+}
+
+.tsd-panel.tsd-hierarchy {
+    display: none;
+}
+
+.tsd-signature, pre {
+    box-shadow: -2px 2px 2px #1e1e1e;
+    padding: 1rem;
+}
+
+.tsd-signature-type {
+    color: gray;
+}
+
+.tsd-kind-icon {
+    opacity: .5;
+    transition: opacity .5s;
+}
+
+a:hover > .tsd-kind-icon {
+    opacity: 1;
+}
+
+ul {
+    list-style-type: symbols("–");
+}
+
+ul.tsd-small-nested-navigation > li > a {
+    color: #b4b4b4;
+}
+
+ul.tsd-small-nested-navigation > li > a.current {
+    color: whitesmoke;
+}
+
+#tsd-search .field label {
+
+}
+
+@media (prefers-reduced-motion) {
+    html {
+        scroll-behavior: unset;
+    }
+}

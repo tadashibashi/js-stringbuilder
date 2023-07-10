@@ -109,6 +109,22 @@ export class StringBuilder {
 
 
     /**
+     * Clear the string, effectively setting its length to 0.
+     * @returns This StringBuilder to chain calls.
+     */
+    public clear() {
+        if (this._length !== 0) {
+            this._length = 0;
+
+            this._isDirty = false;
+            this._temp = "";
+        }
+
+        return this;
+    }
+
+
+    /**
      * Copy and insert a given string or array at a specified index.
      * If inserting at position 0, please use {@link StringBuilder.prepend} instead.
      * @param index - character index at which to insert –
@@ -172,7 +188,7 @@ export class StringBuilder {
      * @returns This StringBuilder to chain calls.
      * @throws RangeError if startAt is out of range.
      */
-    public replace(query: string | RegExp, value: string, startAt: number = 0, end?: number) {
+    replace(query: string | RegExp, value: string, startAt: number = 0, end?: number) {
         this._applyPrepend();
 
         if (typeof query === "string") {
@@ -258,33 +274,6 @@ export class StringBuilder {
 
 
     /**
-     * Write data into the buffer (overwrites any underlying data).
-     * If write exceeds the {@link StringBuilder.bufferLength}, it will automatically expand.
-     * will increase its size.
-     * @param index - index to start writing to
-     * @param strOrArray - string or array to write into the buffer
-     */
-    write(index: number, strOrArray: string | ArrayLike<string> | ArrayLike<number>): StringBuilder {
-        if (strOrArray.length === 0) return this;
-
-        this._applyPrepend();
-
-        const newLength = Math.max(index + strOrArray.length, this._length);
-        this._expand(newLength);
-
-        if (typeof strOrArray === "string") {
-            this._writeString(strOrArray, index);
-        } else {
-            this._writeArray(strOrArray, index);
-        }
-
-        this._length = newLength;
-        this._isDirty = true;
-        return this;
-    }
-
-
-    /**
      * Shrinks buffer to fit current string.
      * Intended use case: if string becomes significantly shorter and remaining buffer is huge,
      * free buffer memory to the GC.
@@ -312,13 +301,13 @@ export class StringBuilder {
      * There is no performance cost if string is unchanged between calls
      * to this function.
      */
-    public str(): string; // interface left as function to let user know it costs to call this function.
+    str(): string; // interface left as function to let user know it costs to call this function.
     /**
      * Set the string.
      * @param str
      */
-    public str(str: string): StringBuilder;
-    public str(str?: string): string | StringBuilder {
+    str(str: string): StringBuilder;
+    str(str?: string): string | StringBuilder {
         if (str === undefined) {
             this._applyPrepend();
             // Get inner string
@@ -345,19 +334,47 @@ export class StringBuilder {
     }
 
 
-
     /**
-     * Clear the string, effectively setting its length to 0.
-     * @returns This StringBuilder to chain calls.
+     * Write data directly into the buffer, overwriting any underlying data.
+     * If write exceeds the {@link StringBuilder.bufferLength}, it will automatically expand.
+     * @param index - index to start writing to
+     * @param strOrArray - string or array to write into the buffer
+     * @returns This StringBuilder for chained calls.
+     *
+     * Simple write
+     * ```js
+     * const sb = new StringBuilder("012345");
+     *
+     * sb.write(2, "abc");
+     *
+     * console.log(sb); // "01abc5"
+     * ```
+     *
+     * Overflow is okay
+     * ```js
+     * const sb = new StringBuilder("012345");
+     *
+     * sb.write(5, "abc");
+     *
+     * console.log(sb); // "01234abc"
+     * ```
      */
-    public clear() {
-        if (this._length !== 0) {
-            this._length = 0;
+    write(index: number, strOrArray: string | ArrayLike<string> | ArrayLike<number>): StringBuilder {
+        if (strOrArray.length === 0) return this;
 
-            this._isDirty = false;
-            this._temp = "";
+        this._applyPrepend();
+
+        const newLength = Math.max(index + strOrArray.length, this._length);
+        this._expand(newLength);
+
+        if (typeof strOrArray === "string") {
+            this._writeString(strOrArray, index);
+        } else {
+            this._writeArray(strOrArray, index);
         }
 
+        this._length = newLength;
+        this._isDirty = true;
         return this;
     }
 
@@ -450,6 +467,7 @@ export class StringBuilder {
      * For character code see {@link StringBuilder.charCodeAt}.
      * @param index - character index in string –
      * negative numbers count backward from last index: `length + index`
+     * @returns The character at the index
      * @throws RangeError on invalid index
      */
     charAt(index: number): string {
@@ -515,7 +533,7 @@ export class StringBuilder {
      * @param callback - called for each character, if it returns -1, it will break the loop.
      * @param context  - optional context to bind `this` to.
      * @returns This StringBuilder to chain calls.
-     * @example ```js
+     * ```js
      * stringBuilder.forEach(function(char, i) {
      *      if (char === 'q')
      *          return -1; // break from loop
@@ -555,7 +573,16 @@ export class StringBuilder {
      * @param end - one past the last index to be copied. If not specified,
      * it will automatically be set to `length`. If larger than `length`, it
      * will be set to `length`.
+     *
+     * @returns Substring slice copy.
      * @throws RangeError if `start` is out of range.
+     * ```js
+     * const sb = new StringBuilder("0123456789");
+     *
+     * let sub = sb.substring(2, 5);
+     *
+     * console.log(sub); // "234"
+     * ```
      */
     substring(start: number, end?: number): string {
         this._applyPrepend();
@@ -588,6 +615,13 @@ export class StringBuilder {
 
     /**
      * Split string into an array of individual characters
+     * @returns New array of characters. Warning: creates garbage,
+     * use sparingly.
+     * ```js
+     * const sb = new StringBuilder("012345");
+     *
+     * const arr = sb.toArray(); // ["0", "1", "2", "3", "4", "5"];
+     * ```
      */
     toArray(): Array<string> {
         this._applyPrepend();
@@ -606,9 +640,12 @@ export class StringBuilder {
     /**
      * Implemented to convert to StringBuilder to string in type-coerced contexts.
      * In any case, please call {@link StringBuilder.str} instead.
-     * @example ```js
+     * ```js
      * const sb = new StringBuilder("abc");
-     * console.log(sb) // "abc"
+     *
+     * // Equivalent evaluations
+     * conosle.log(sb.toString()); // "abc"
+     * console.log(sb)             // "abc"
      * ```
      */
     toString(): string {
