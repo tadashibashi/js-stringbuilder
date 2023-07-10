@@ -6,7 +6,7 @@
     "test": "jest tests/functions",
     "test:perf": "jest tests/performance",
     "build": "tsc",
-    "docs": "typedoc StringBuilder.ts --plugin @mxssfd/typedoc-theme --theme my-theme --darkHighlightTheme material-theme --name 'JS StringBuilder' --watch --includeVersion"
+    "docs": "typedoc StringBuilder.ts --plugin @mxssfd/typedoc-theme --theme my-theme --darkHighlightTheme monokai --name 'JS StringBuilder' --watch --includeVersion"
   },
   "devDependencies": {
     "@mxssfd/typedoc-theme": "^1.1.2",
