@@ -288,6 +288,9 @@ export class StringBuilder {
         this._str = new Uint16Array(newBufLength);
         this._str.set(temp.subarray(0, this._length));
 
+        if (this._toPrepend)
+            this._toPrepend.shrink();
+
         return this;
     }
 
