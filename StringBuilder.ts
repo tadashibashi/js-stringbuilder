@@ -2,10 +2,10 @@ const StringBuilderMinSize: number = 24;
 
 /**
  * A dynamic string builder for efficient char manipulation.
- * - Efficient memory usage, light on the garbage collector.
  * - Stores data in a contiguous ArrayBuffer not unlike C++ strings or
  * Java/C# StringBuilder.
- * - All arguments representing index may use negative numbers à la Python.
+ * - Provides optimization buffer for rapid repetitive prepends
+ * - All arguments representing index may use negative numbers like in Python.
  */
 export class StringBuilder {
     // ===== Class variables ==================================================
@@ -68,14 +68,13 @@ export class StringBuilder {
         }
 
 
-        if (strOrSize) {
-            if (typeof strOrSize === "string") { // set the string
-                this._str = new Uint16Array(Math.max((strOrSize.length + 1) * 2, StringBuilderMinSize));
-                this.str(strOrSize);
-            } else {                             // set the size
-                this._str = new Uint16Array(Math.max(strOrSize, StringBuilderMinSize));
-            }
+        if (typeof strOrSize === "string") { // set the string
+            this._str = new Uint16Array(Math.max((strOrSize.length + 1) * 2, StringBuilderMinSize));
+            this.str(strOrSize);
+        } else {                             // set the size
+            this._str = new Uint16Array(Math.max(strOrSize, StringBuilderMinSize));
         }
+
 
         // init static decoder if not yet created
         if (!StringBuilder.decoder) {
