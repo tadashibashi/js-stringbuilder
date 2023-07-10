@@ -73,6 +73,122 @@ export class StringBuilder {
 
 
     /**
+     * Append an array of chars to the end of the StringBuilder.
+     * @param str - a string or array of single character strings or char codes to add
+     * @returns This Stringbuilder for chained calls.
+     */
+    append(str: string | ArrayLike<number> | ArrayLike<string>): StringBuilder {
+        if (str.length === 0) return this;
+        this._applyPrepend();
+        this._expand(this._length + str.length);
+
+        if (typeof str === "string") {
+            this._writeString(str, this._length);
+        } else {
+            this._writeArray(str, this._length);
+        }
+
+        this._length += str.length;
+        this._isDirty = true;
+        return this;
+    }
+
+
+    /**
+     * Copy and insert a given string or array at a specified index.
+     * If inserting at position 0, please use {@link StringBuilder.prepend} instead.
+     * @param index - character index at which to insert –
+     * negative values count backward from end: `length + index`
+     * @param strOrArray - string or array to insert.
+     */
+    insert(index: number, strOrArray: string | ArrayLike<string> | ArrayLike<number>): StringBuilder {
+        return this.splice(index, 0, strOrArray);
+    }
+
+
+    /**
+     * Calls {@link String.match} on the current string.
+     * @param query
+     */
+    match(query: string | RegExp) {
+        return this.str().match(query);
+    }
+
+
+    /**
+     * Prepend a string to the beginning of the StringBuilder.
+     * @param strOrArray - string or array to prepend
+     * @returns this StringBuilder instance for chained calls
+     */
+    prepend(strOrArray: string | ArrayLike<string> | ArrayLike<number>): StringBuilder {
+        if (strOrArray.length === 0) return this;
+        if (!this._toPrepend) { return this.insert(0, strOrArray); }
+
+        this._toPrepend._expand(this._toPrepend._length + strOrArray.length);
+
+        const inputLen = strOrArray.length;
+        if (typeof strOrArray === "string") {
+            for (let i = 0; i < inputLen; ++i) {
+                this._toPrepend._str[this._toPrepend._length + i] = strOrArray.charCodeAt(inputLen-1-i);
+            }
+        } else {
+            if (typeof strOrArray[0] === "string") {
+                for (let i = 0; i < strOrArray.length; ++i) {
+                    this._toPrepend._str[this._toPrepend._length + i] =
+                        (strOrArray[inputLen-1-i] as string).charCodeAt(0);
+                }
+            } else {
+                for (let i = 0; i < strOrArray.length; ++i) {
+                    this._toPrepend._str[this._toPrepend._length + i] = strOrArray[inputLen-1-i] as number;
+                }
+            }
+        }
+        this._toPrepend._length += inputLen;
+        this._isDirty = true;
+        return this;
+    }
+
+
+    /**
+     * Replace first occurrence of a query with a string
+     * @param query - string or RegExp to search for.
+     * @param value - replace occurrence of found query with this string value.
+     * @param startAt - index to start searching at.
+     * @param end     - index to search until (exclusively, does not search this index).
+     * @returns This StringBuilder to chain calls.
+     * @throws RangeError if startAt is out of range.
+     */
+    public replace(query: string | RegExp, value: string, startAt: number = 0, end?: number) {
+        this._applyPrepend();
+
+        if (typeof query === "string") {
+            if (query.length === 0) return this;
+
+            const idx = this.search(query, startAt, end);
+            if (idx === -1)
+                return this;
+
+            const newLength = this._length + value.length - query.length
+
+            this._expand(newLength);
+            this._str.copyWithin(idx + value.length - query.length,
+                idx + query.length, this._length);
+
+            for (let i = 0; i < value.length; ++i) {
+                this._str[i + idx] = value.charCodeAt(i);
+            }
+
+            this._length = newLength;
+            this._isDirty = true;
+        } else {
+            this.str(this.str().replace(query, value));
+        }
+
+        return this;
+    }
+
+
+    /**
      * Ensures internal buffer will fit at least `size` number of chars.
      * This helps prevent dynamic size increase if the intended string length
      * is known in advance.
@@ -84,6 +200,7 @@ export class StringBuilder {
         this._expand(size);
         return this;
     }
+
 
     /**
      * Removes characters, and optionally splice some into the StringBuilder.
@@ -127,51 +244,8 @@ export class StringBuilder {
 
 
     /**
-     * Prepend a string to the StringBuilder.
-     * @param strOrArray - string or array to prepend
-     * @returns this StringBuilder instance for chained calls
-     */
-    prepend(strOrArray: string | ArrayLike<string> | ArrayLike<number>): StringBuilder {
-        if (strOrArray.length === 0) return this;
-        if (!this._toPrepend) { return this.insert(0, strOrArray); }
-
-        this._toPrepend._expand(this._toPrepend._length + strOrArray.length);
-
-        const inputLen = strOrArray.length;
-        if (typeof strOrArray === "string") {
-            for (let i = 0; i < inputLen; ++i) {
-                this._toPrepend._str[this._toPrepend._length + i] = strOrArray.charCodeAt(inputLen-1-i);
-            }
-        } else {
-            if (typeof strOrArray[0] === "string") {
-                for (let i = 0; i < strOrArray.length; ++i) {
-                    this._toPrepend._str[this._toPrepend._length + i] =
-                        (strOrArray[inputLen-1-i] as string).charCodeAt(0);
-                }
-            } else {
-                for (let i = 0; i < strOrArray.length; ++i) {
-                    this._toPrepend._str[this._toPrepend._length + i] = strOrArray[inputLen-1-i] as number;
-                }
-            }
-        }
-        this._toPrepend._length += inputLen;
-        this._isDirty = true;
-        return this;
-    }
-
-
-    /**
-     * Copy and insert a given string or array at a specified index.
-     * @param index - character index at which to insert –
-     * negative values count backward from end: `length + index`
-     * @param strOrArray - string or array to insert.
-     */
-    insert(index: number, strOrArray: string | ArrayLike<string> | ArrayLike<number>): StringBuilder {
-        return this.splice(index, 0, strOrArray);
-    }
-
-    /**
-     * Write into the buffer, overwriting any underlying data. Writes beyond StringBuilder's length
+     * Write data into the buffer (overwrites any underlying data).
+     * If write exceeds the {@link StringBuilder.bufferLength}, it will automatically expand.
      * will increase its size.
      * @param index - index to start writing to
      * @param strOrArray - string or array to write into the buffer
@@ -195,41 +269,14 @@ export class StringBuilder {
         return this;
     }
 
-    public replace(query: string | RegExp, value: string) {
-        this._applyPrepend();
-
-        if (typeof query === "string") {
-            if (query.length === 0) return this;
-
-            const idx = this.search(query);
-            if (idx === -1)
-                return this;
-
-            const newLength = this._length + value.length - query.length
-
-            this._expand(newLength);
-            this._str.copyWithin(idx + value.length - query.length,
-                idx + query.length, this._length);
-
-            for (let i = 0; i < value.length; ++i) {
-                this._str[i + idx] = value.charCodeAt(i);
-            }
-
-            this._length = newLength;
-            this._isDirty = true;
-        } else {
-            this.str(this.str().replace(query, value));
-        }
-
-        return this;
-    }
 
     /**
      * Shrinks buffer to fit current string.
      * Intended use case: if string becomes significantly shorter and remaining buffer is huge,
      * free buffer memory to the GC.
+     * @returns This StringBuilder to chain calls.
      */
-    public shrink() {
+    shrink() {
         this._applyPrepend();
 
         const newBufLength = Math.max(StringBuilderMinSize, (this._length + 1) * 2);
@@ -243,14 +290,6 @@ export class StringBuilder {
             this._toPrepend.shrink();
 
         return this;
-    }
-
-    /**
-     * Calls {@link String.match} on the current string.
-     * @param query
-     */
-    public match(query: string | RegExp) {
-        return this.str().match(query);
     }
 
 
@@ -292,29 +331,10 @@ export class StringBuilder {
     }
 
 
-    /**
-     * Append an array of chars to the end of the StringBuilder.
-     * @param str - a string or array of single character strings or char codes to add
-     * @returns This Stringbuilder for chained calls.
-     */
-    public append(str: string | ArrayLike<number> | ArrayLike<string>): StringBuilder {
-        if (str.length === 0) return this;
-        this._applyPrepend();
-        this._expand(this._length + str.length);
-
-        if (typeof str === "string") {
-            this._writeString(str, this._length);
-        } else {
-            this._writeArray(str, this._length);
-        }
-
-        this._length += str.length;
-        this._isDirty = true;
-        return this;
-    }
 
     /**
      * Clear the string, effectively setting its length to 0.
+     * @returns This StringBuilder to chain calls.
      */
     public clear() {
         if (this._length !== 0) {
@@ -323,50 +343,10 @@ export class StringBuilder {
             this._isDirty = false;
             this._temp = "";
         }
+
+        return this;
     }
 
-
-    /**
-     * Copy an array into the buffer at given start index.
-     * Assumes buffer is large enough. Overwrites information at indices.
-     * @param array - array to copy, containing charCode or single char per item.
-     * @param start - starting index of this StringBuffer at which to begin copying.
-     */
-    private _writeArray(array: ArrayLike<number> | ArrayLike<string>, start: number) {
-        if (typeof array[0] === "number") {
-            this._str.set(array as ArrayLike<number>, start);
-        } else {
-            for (let i = 0; i < array.length; ++i) {
-                this._str[i + start] = (array[i] as string).charCodeAt(0);
-            }
-        }
-    }
-
-    /**
-     * Copy a string into the buffer at a given index.
-     * Assumes buffer is large enough, overwriting information at indices.
-     * @param str - string to copy.
-     * @param index - index at which to start copying string.
-     */
-    private _writeString(str: string, index: number) {
-        this._applyPrepend();
-
-        for (let i = 0; i < str.length; ++i) {
-            this._str[i + index] = str.charCodeAt(i);
-        }
-    }
-
-    /**
-     * Expand the buffer to fit at least `size` indices.
-     * @param size - min number of utf-16 chars to hold.
-     */
-    private _expand(size: number) {
-        if (size > this._str.length) {
-            const temp = this._str;
-            this._str = new Uint16Array((size + 1) * 2);
-            this._str.set(temp);
-        }
-    }
 
     /**
      * Take anything in the prepend buffer and apply it to the main buffer.
@@ -390,16 +370,66 @@ export class StringBuilder {
         }
     }
 
-    // ===== Get / Read =======================================================
 
     /**
-     * @description Length of the string.
-     * For buffer length, see {@link StringBuilder.bufferLength}
+     * Expand the buffer to fit at least `size` indices.
+     * @param size - min number of utf-16 chars to hold.
      */
-    get length(): number {
-        this._applyPrepend();
-        return this._length;
+    private _expand(size: number) {
+        if (size > this._str.length) {
+            const temp = this._str;
+            this._str = new Uint16Array((size + 1) * 2);
+            this._str.set(temp);
+        }
     }
+
+
+    /**
+     * Copy an array into the buffer at given start index.
+     * Assumes buffer is large enough. Overwrites information at indices.
+     * @param array - array to copy, containing charCode or single char per item.
+     * @param start - starting index of this StringBuffer at which to begin copying.
+     */
+    private _writeArray(array: ArrayLike<number> | ArrayLike<string>, start: number) {
+        if (typeof array[0] === "number") {
+            this._str.set(array as ArrayLike<number>, start);
+        } else {
+            for (let i = 0; i < array.length; ++i) {
+                this._str[i + start] = (array[i] as string).charCodeAt(0);
+            }
+        }
+    }
+
+
+    /**
+     * Copy a string into the buffer at a given index.
+     * Assumes buffer is large enough, overwriting information at indices.
+     * @param str - string to copy.
+     * @param index - index at which to start copying string.
+     */
+    private _writeString(str: string, index: number) {
+        this._applyPrepend();
+
+        for (let i = 0; i < str.length; ++i) {
+            this._str[i + index] = str.charCodeAt(i);
+        }
+    }
+
+
+
+    // ===== Get / Read =======================================================
+
+
+    /**
+     * The length of the internal buffer in utf-16 chars.
+     * To get byte size: `bufferLength * 2`
+     */
+    get bufferLength(): number {
+        this._applyPrepend();
+
+        return this._str.length;
+    }
+
 
     /**
      * Get character at the given index.
@@ -467,21 +497,10 @@ export class StringBuilder {
 
 
     /**
-     * Implemented to convert to StringBuilder to string in type-coerced contexts.
-     * In any case, please call {@link StringBuilder.str} instead.
-     * @example ```js
-     * const sb = new StringBuilder("abc");
-     * console.log(sb) // "abc"
-     * ```
-     */
-    toString(): string {
-        return this.str();
-    }
-
-    /**
      * Iterates over a callback for each character in the string.
      * @param callback - called for each character, if it returns -1, it will break the loop.
      * @param context  - optional context to bind `this` to.
+     * @returns This StringBuilder to chain calls.
      * @example ```js
      * stringBuilder.forEach(function(char, i) {
      *      if (char === 'q')
@@ -492,7 +511,7 @@ export class StringBuilder {
      * }, myObj); // myObj becomes `this`
      * ```
      */
-    forEach(callback: (char: string, index?: number, sb?: StringBuilder) => unknown, context?: unknown): void {
+    forEach(callback: (char: string, index?: number, sb?: StringBuilder) => unknown, context?: unknown) {
         if (context) {
             callback = callback.bind(context);
         }
@@ -501,23 +520,20 @@ export class StringBuilder {
             if (callback(String.fromCharCode(this._str[i]), i, this) === -1)
                 break;
         }
+
+        return this;
     }
+
 
     /**
-     * Split string into an array of individual characters
+     * @description Length of the string.
+     * For buffer length, see {@link StringBuilder.bufferLength}
      */
-    toArray(): Array<string> {
+    get length(): number {
         this._applyPrepend();
-
-        const ret = new Array<string>(this.length);
-        const length = this._length;
-
-        for (let i = 0; i < length; ++i) {
-            ret[i] = String.fromCharCode(this._str[i]);
-        }
-
-        return ret;
+        return this._length;
     }
+
 
     /**
      * Get a substring from the StringBuilder.
@@ -555,23 +571,44 @@ export class StringBuilder {
             this._str.subarray(start, end));
     }
 
+
     /**
-     * The size of the internal buffer in utf-16 chars.
-     * (Actual size in bytes is twice this number)
+     * Split string into an array of individual characters
      */
-    get bufferLength(): number {
+    toArray(): Array<string> {
         this._applyPrepend();
 
-        return this._str.length;
+        const ret = new Array<string>(this.length);
+        const length = this._length;
+
+        for (let i = 0; i < length; ++i) {
+            ret[i] = String.fromCharCode(this._str[i]);
+        }
+
+        return ret;
     }
+
+
+    /**
+     * Implemented to convert to StringBuilder to string in type-coerced contexts.
+     * In any case, please call {@link StringBuilder.str} instead.
+     * @example ```js
+     * const sb = new StringBuilder("abc");
+     * console.log(sb) // "abc"
+     * ```
+     */
+    toString(): string {
+        return this.str();
+    }
+
 
     /**
      * Get the index of the first occurrence of a string or RegExp.
      * @param query - query to find
      * @param startAt - start position to search from. Default: 0
-     * @param end - optional end index to search up to (does not search this index).
+     * @param end - index to search up to (exclusively, does not count this index).
      * Left unspecified, the function will search until the end of the string.
-     * @returns index of the first occurrence or -1 if it does not exist.
+     * @returns index of the first occurrence of `query` or `-1` if it does not exist.
      * @throws RangeError if `startingAt` is out of range; `end` may exceed range.
      */
     search(query: RegExp | string, startAt = 0, end?: number): number {
