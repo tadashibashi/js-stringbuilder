@@ -21,7 +21,9 @@ export class StringBuilder {
     /**
      * Internal string buffer, JS String uses utf-16 encoding
      */
-    private _str: Uint16Array;
+    private _str: Uint16Array | Uint8Array;
+
+    private readonly _type: Uint8ArrayConstructor | Uint16ArrayConstructor;
 
     /**
      * "Pointer" to end of string, since buffer is usually larger
@@ -54,31 +56,33 @@ export class StringBuilder {
     /**
      * @param strOrSize - initial string to set, or initial size of the buffer
      * @param usePrependBuffer - whether to use prepend buffer optimization;
+     * @param type - type of buffer to store
      * default: `true`
      */
-    constructor(strOrSize: string | number = StringBuilderMinSize, usePrependBuffer = true) {
+    constructor(strOrSize: string | number = StringBuilderMinSize, type: Uint16ArrayConstructor | Uint8ArrayConstructor = Uint16Array, usePrependBuffer = true) {
         this._length = 0;
         this._isDirty = false;
         this._temp = "";
+        this._type = type;
 
         if (usePrependBuffer)
-            this._toPrepend = new StringBuilder(StringBuilderMinSize, false);
+            this._toPrepend = new StringBuilder(StringBuilderMinSize, type, false);
         else {
             // leave `this._toPrepend` unset/undefined
         }
 
 
         if (typeof strOrSize === "string") { // set the string
-            this._str = new Uint16Array(Math.max((strOrSize.length + 1) * 2, StringBuilderMinSize));
+            this._str = new this._type(Math.max((strOrSize.length + 1) * 2, StringBuilderMinSize));
             this.str(strOrSize);
         } else {                             // set the size
-            this._str = new Uint16Array(Math.max(strOrSize, StringBuilderMinSize));
+            this._str = new this._type(Math.max(strOrSize, StringBuilderMinSize));
         }
 
 
         // init static decoder if not yet created
         if (!StringBuilder.decoder) {
-            StringBuilder.decoder = new TextDecoder("utf-16");
+            StringBuilder.decoder = new TextDecoder(type === Uint16Array ? "utf-16" : "utf-8");
         }
     }
 
@@ -91,7 +95,16 @@ export class StringBuilder {
      * @param strOrArray - may be a string or array or characters or char codes.
      * @returns This Stringbuilder for chained calls.
      */
-    append(strOrArray: string | ArrayLike<number> | ArrayLike<string>): StringBuilder {
+    append(strOrArray: string | number | ArrayLike<number> | ArrayLike<string>): StringBuilder {
+        if (typeof strOrArray === "number") {
+            this._applyPrepend();
+            this._expand(this._length + 1);
+            this._str[this._length] = strOrArray;
+
+            this._isDirty = true;
+            return this;
+        }
+
         if (strOrArray.length === 0) return this;
         this._applyPrepend();
         this._expand(this._length + strOrArray.length);
@@ -131,7 +144,7 @@ export class StringBuilder {
      * negative values count backward from end: `length + index`
      * @param strOrArray - string or array to insert.
      */
-    insert(index: number, strOrArray: string | ArrayLike<string> | ArrayLike<number>): StringBuilder {
+    insert(index: number, strOrArray: string | number | ArrayLike<string> | ArrayLike<number>): StringBuilder {
         return this.splice(index, 0, strOrArray);
     }
 
@@ -150,30 +163,41 @@ export class StringBuilder {
      * @param strOrArray - string or array to prepend
      * @returns this StringBuilder instance for chained calls
      */
-    prepend(strOrArray: string | ArrayLike<string> | ArrayLike<number>): StringBuilder {
-        if (strOrArray.length === 0) return this;
+    prepend(strOrArray: string | number | ArrayLike<string> | ArrayLike<number>): StringBuilder {
+        let objLength: number;
+        if (typeof strOrArray !== "number") {
+            if (strOrArray.length === 0) return this;
+            objLength = strOrArray.length;
+
+
+        } else {
+            objLength = 1;
+        }
+
         if (!this._toPrepend) { return this.insert(0, strOrArray); }
 
-        this._toPrepend._expand(this._toPrepend._length + strOrArray.length);
+        this._toPrepend._expand(this._toPrepend._length + objLength);
 
-        const inputLen = strOrArray.length;
         if (typeof strOrArray === "string") {
-            for (let i = 0; i < inputLen; ++i) {
-                this._toPrepend._str[this._toPrepend._length + i] = strOrArray.charCodeAt(inputLen-1-i);
+            for (let i = 0; i < objLength; ++i) {
+                this._toPrepend._str[this._toPrepend._length + i] = strOrArray.charCodeAt(objLength-1-i);
             }
+        } else if (typeof strOrArray === "number") {
+            this._toPrepend._str[this._toPrepend._length] = strOrArray;
         } else {
             if (typeof strOrArray[0] === "string") {
-                for (let i = 0; i < strOrArray.length; ++i) {
+                for (let i = 0; i < objLength; ++i) {
                     this._toPrepend._str[this._toPrepend._length + i] =
-                        (strOrArray[inputLen-1-i] as string).charCodeAt(0);
+                        (strOrArray[objLength-1-i] as string).charCodeAt(0);
                 }
             } else {
                 for (let i = 0; i < strOrArray.length; ++i) {
-                    this._toPrepend._str[this._toPrepend._length + i] = strOrArray[inputLen-1-i] as number;
+                    this._toPrepend._str[this._toPrepend._length + i] = strOrArray[objLength-1-i] as number;
                 }
             }
         }
-        this._toPrepend._length += inputLen;
+
+        this._toPrepend._length += objLength;
         this._isDirty = true;
         return this;
     }
@@ -240,30 +264,53 @@ export class StringBuilder {
      * Specify `0` if you only intend on inserting.
      * @param toAdd - any string or array of char/codes to add
      * @returns this StringBuilder instance for chained calls.
+     * Delete indices
+     * ```js
+     * const sb = new StringBuilder("01234");
+     *
+     * sb.splice(2, 1);
+     *
+     * console.log(sb); // "0134"
+     * ```
+     *
+     * Splice in indices
+     * ```js
+     * const sb = new StringBuilder("01234");
+     *
+     * sb.splice(2, 0, "abc");
+     *
+     * console.log(sb); // "01abc234"
+     * ```
      */
-    splice(index: number, delCount: number, toAdd: string | ArrayLike<string> | ArrayLike<number> = ""): StringBuilder {
-        if (delCount === 0 && toAdd.length === 0) return this;
-
+    splice(index: number, delCount: number, toAdd: string | number | ArrayLike<string> | ArrayLike<number> = ""): StringBuilder {
         this._applyPrepend();
+
+        const objLength = typeof toAdd === "number" ? 1 : toAdd.length;
 
         if (delCount !== 0)
             delCount = Math.max(Math.min(this._length-index, delCount), 0);
 
         index = this._validateIndex(index, true);
 
-        const newSize = this._length - delCount + toAdd.length;
+        const newSize = this._length - delCount + objLength;
         this._expand(newSize);
 
         // shift data
-        this._str.copyWithin(index + toAdd.length,
+        this._str.copyWithin(index + objLength,
             index + delCount, this._length);
 
         // write new data
-        if (toAdd.length) {
-            if (typeof toAdd === "string") {
-                this._writeString(toAdd, index);
-            } else {
-                this._writeArray(toAdd, index);
+        if (objLength) {
+            switch(typeof toAdd) {
+                case "string":
+                    this._writeString(toAdd, index);
+                    break;
+                case "number":
+                    this._str[index] = toAdd;
+                    break;
+                default:
+                    this._writeArray(toAdd, index);
+                    break;
             }
         }
 
@@ -286,7 +333,7 @@ export class StringBuilder {
         if (this._str.length < newBufLength) return this;
 
         const temp = this._str;
-        this._str = new Uint16Array(newBufLength);
+        this._str = new this._type(newBufLength);
         this._str.set(temp.subarray(0, this._length));
 
         if (this._toPrepend)
@@ -409,7 +456,7 @@ export class StringBuilder {
     private _expand(size: number) {
         if (size > this._str.length) {
             const temp = this._str;
-            this._str = new Uint16Array((size + 1) * 2);
+            this._str = new this._type((size + 1) * 2);
             this._str.set(temp);
         }
     }
@@ -451,14 +498,25 @@ export class StringBuilder {
     // ===== Get / Read =======================================================
 
 
+    get buffer() {
+        return this._str.subarray(0, this._length);
+    }
+
     /**
-     * The length of the internal buffer in utf-16 chars.
-     * To get byte size: `bufferLength * 2`
+     * The length of the internal buffer in chars.
      */
     get bufferLength(): number {
         this._applyPrepend();
 
         return this._str.length;
+    }
+
+    get bufferBytes(): number {
+        return this._str.length * this.bytesPerChar;
+    }
+
+    get bytesPerChar(): number {
+        return this._type === Uint16Array ? 2 : 1;
     }
 
 
@@ -590,7 +648,8 @@ export class StringBuilder {
         try {
             start = this._validateIndex(start);
         } catch(err) {
-            console.error("[StringBuilder.substring: start]", err);
+            if (err instanceof RangeError)
+                console.error("[StringBuilder.substring: start]", err.message);
             throw err;
         }
 
@@ -603,7 +662,8 @@ export class StringBuilder {
             try {
                 end = this._validateIndex(end, true);
             } catch(err) {
-                console.error("[StringBuilder.substring: end]", err);
+                if (err instanceof RangeError)
+                    console.error("[StringBuilder.substring: end]", err.message);
                 throw err;
             }
         }
@@ -669,7 +729,8 @@ export class StringBuilder {
         try {
             startAt = this._validateIndex(startAt, false);
         } catch(err: unknown) {
-            console.error("[StringBuilder#search: startAt]", err);
+            if (err instanceof RangeError)
+                console.error("[StringBuilder#search: startAt]", err.message);
             throw err;
         }
 
@@ -689,7 +750,8 @@ export class StringBuilder {
             try {
                 end = this._validateIndex(end, true);
             } catch(err: unknown) {
-                console.error("[StringBuilder#search: end]", err);
+                if (err instanceof RangeError)
+                    console.error("[StringBuilder#search: end]", err.message);
                 throw err;
             }
 
@@ -718,9 +780,10 @@ export class StringBuilder {
             else {
                 try {
                     end = this._validateIndex(end, true);
-                } catch (e) {
-                    console.error("[StringBuilder.search: end]", e);
-                    throw e;
+                } catch (err) {
+                    if (err instanceof RangeError)
+                        console.error("[StringBuilder.search: end]", err.message);
+                    throw err;
                 }
             }
 
@@ -743,7 +806,7 @@ export class StringBuilder {
             index += this._length;
 
         if (index >= this._length + (allowEnd ? 1 : 0) || index < 0)
-            throw RangeError(`StringBuilder index ${index} is out of range.`);
+            throw RangeError(`index ${index} is out of range.`);
         return index;
     }
 }
