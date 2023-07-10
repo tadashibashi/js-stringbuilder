@@ -2,7 +2,7 @@ import {StringBuilder} from "../StringBuilder";
 
 let RandText = "";
 {
-    const ITERATIONS = 500000;
+    const ITERATIONS = 1_000_000;
     for (let i = 0; i < ITERATIONS; ++i) {
         RandText += String.fromCharCode(Math.floor(Math.random() * 26) + 'a'.charCodeAt(0));
     }
@@ -47,7 +47,7 @@ test("append string vs StringBuilder.append", () => {
 // Poorer performance for StringBuilder since large blocks of memory are shifted
 // every iteration. JS strings are optimized for this task.
 test("StringBuilder#insert beginning vs string", () => {
-    const ITERATIONS = 500000;
+    const ITERATIONS = RandText.length;
     // string append to beginning
     const strStart = performance.now();
     let str = '';
@@ -85,7 +85,7 @@ test("StringBuilder#insert beginning vs string", () => {
 // Inserting data into the middle of buffer results in significantly
 // better performance for StringBuilder
 test("StringBuilder#insert middle vs string", () => {
-    const ITERATIONS = 500000;
+    const ITERATIONS = RandText.length;
 
     // string insert to middle
     const strStart = performance.now();

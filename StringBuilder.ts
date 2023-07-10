@@ -16,7 +16,7 @@ export class StringBuilder {
 
     // ===== Instance variables ===============================================
 
-    // Internal string buffer
+    // Internal string buffer, JS String uses utf-16 encoding
     private _str: Uint16Array;
 
     // "Pointer" to end of string, since buffer is usually larger
@@ -29,8 +29,8 @@ export class StringBuilder {
     // These temp vars make it efficient to call str() multiple times
     // without having to regenerate string with decoder every time.
     private _temp: string;     // temp string stored for easy access
-    private _isDirty: boolean; // flagged when string has changed, updates
-                               // `_temp` during any calls to str
+    private _isDirty: boolean; // flagged when string has changed, signals
+                               // necessary update to `_temp` in calls to str()
 
 
     // ===== constructor ======================================================
