@@ -1,4 +1,4 @@
-![logo](logo.png)
+![logo](https://raw.githubusercontent.com/tadashibashi/js-stringbuilder/main/logo.png)
 
 ### *A dynamic string class for efficient manipulation*
 - Array-like flexibility to control strings
@@ -27,18 +27,6 @@ with npm:
 ```shell
 npm i
 npm run build
-```
-
-### Build the docs
-
-with yarn:
-```shell
-yarn docs
-```
-
-with npm:
-```shell
-npm run docs
 ```
 
 ## Example Usage
@@ -80,6 +68,11 @@ stringBuilder.replace(/world/, "StringBuilder");
 
 console.log(stringBuilder.str()); // "Hello StringBuilder!"
 ```
+
+## Documentation
+
+Hosted here: https://code.aaronishibashi.com/js-stringbuilder
+
 
 ## Performance Comparison
 
