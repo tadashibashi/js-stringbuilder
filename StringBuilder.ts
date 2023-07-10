@@ -36,20 +36,16 @@ export class StringBuilder {
     // ===== constructor ======================================================
 
     /**
-     * @param str - initial string to copy into buffer
+     * @param strOrSize - initial string to set, or initial size of the buffer
+     * @param usePrependBuffer - whether to use prepend buffer optimization;
+     * default: `true`
      */
-    constructor(str?: string);
-    /**
-     * @param size - initial size of the buffer
-     * @param __usePrependBuffer - for library use only
-     */
-    constructor(size?: number, __usePrependBuffer?: boolean);
-    constructor(strOrSize?: string | number, __usePrependBuffer = true) {
+    constructor(strOrSize?: string | number, usePrependBuffer = true) {
         this._length = 0;
         this._isDirty = false;
         this._temp = "";
 
-        if (__usePrependBuffer)
+        if (usePrependBuffer)
             this._toPrepend = new StringBuilder(StringBuilderMinSize, false);
         else {
             // leave `this._toPrepend` unset/undefined
@@ -77,11 +73,11 @@ export class StringBuilder {
 
 
     /**
-     * Ensures buffer will fit at least `size` number of chars.
-     * This prevents dynamic size increase if the necessary string length
+     * Ensures internal buffer will fit at least `size` number of chars.
+     * This helps prevent dynamic size increase if the intended string length
      * is known in advance.
-     * @param size - number of chars to fit
-     * @returns this StringBuilder instance for chained calls
+     * @param size - number of characters to fit
+     * @returns This StringBuilder instance for chained calls
      */
     reserve(size: number): StringBuilder {
         this._applyPrepend();
@@ -130,28 +126,11 @@ export class StringBuilder {
     }
 
 
-
-    /**
-     * Prepend a sequence of char codes to the StringBuilder.
-     * Please prefer to use this function rather than `insert(0, charCodes)`
-     * @param charCodes - array of char codes to prepend
-     * @returns this StringBuilder instance for chained calls
-     */
-    prepend(charCodes: ArrayLike<number>): StringBuilder;
-    /**
-     * Prepend a sequence of chars to the StringBuilder.
-     * Please prefer to use this function rather than `insert(0, chars)`
-     * @param chars - array of chars to prepend
-     * @returns this StringBuilder instance for chained calls
-     */
-    prepend(chars: ArrayLike<string>): StringBuilder;
     /**
      * Prepend a string to the StringBuilder.
-     * Please prefer to use this function rather than `insert(0, str)`
-     * @param str - string to prepend
+     * @param strOrArray - string or array to prepend
      * @returns this StringBuilder instance for chained calls
      */
-    prepend(str: string): StringBuilder;
     prepend(strOrArray: string | ArrayLike<string> | ArrayLike<number>): StringBuilder {
         if (strOrArray.length === 0) return this;
         if (!this._toPrepend) { return this.insert(0, strOrArray); }
@@ -180,26 +159,13 @@ export class StringBuilder {
         return this;
     }
 
+
     /**
-     * Insert an array of char codes within the StringBuilder.
-     * Most efficient type to copy since strings must be converted into numbers first.
-     * @param index - index within StringBuilder at which to insert char codes.
-     * @param charCodes - array to copy.
+     * Copy and insert a given string or array at a specified index.
+     * @param index - character index at which to insert –
+     * negative values count backward from end: `length + index`
+     * @param strOrArray - string or array to insert.
      */
-    insert(index: number, charCodes: ArrayLike<number>): StringBuilder;
-    /**
-     * Insert an array of char codes within the StringBuilder.
-     * @param index - index within StringBuilder at which to insert chars.
-     * @param chars - array to copy.
-     */
-    insert(index: number, chars: ArrayLike<string>): StringBuilder;
-    /**
-     * Insert a string within the StringBuilder.
-     * @param index - index within StringBuilder at which to insert chars.
-     * @param str - string to copy.
-     */
-    insert(index: number, str: string): StringBuilder;
-    insert(index: number, strOrArray: string | ArrayLike<string> | ArrayLike<number>): StringBuilder;
     insert(index: number, strOrArray: string | ArrayLike<string> | ArrayLike<number>): StringBuilder {
         return this.splice(index, 0, strOrArray);
     }
@@ -208,23 +174,8 @@ export class StringBuilder {
      * Write into the buffer, overwriting any underlying data. Writes beyond StringBuilder's length
      * will increase its size.
      * @param index - index to start writing to
-     * @param str - string to write into the buffer
+     * @param strOrArray - string or array to write into the buffer
      */
-    write(index: number, str: string): StringBuilder;
-    /**
-     * Write into the buffer, overwriting any underlying data. Writes beyond StringBuilder's length
-     * will increase its size.
-     * @param index - index to start writing to
-     * @param charCodes - array to write into the buffer
-     */
-    write(index: number, charCodes: ArrayLike<number>): StringBuilder;
-    /**
-     * Write into the buffer, overwriting any underlying data. Writes beyond StringBuilder's length
-     * will increase its size.
-     * @param index - index to start writing to
-     * @param chars - array to write into the buffer
-     */
-    write(index: number, chars: ArrayLike<string>): StringBuilder;
     write(index: number, strOrArray: string | ArrayLike<string> | ArrayLike<number>): StringBuilder {
         if (strOrArray.length === 0) return this;
 
@@ -304,12 +255,14 @@ export class StringBuilder {
 
 
     /**
-     * Get the current buffer as a string.
+     * Convert the current buffer to a string.
+     * There is no performance cost if string is unchanged between calls
+     * to this function.
      */
     public str(): string; // interface left as function to let user know it costs to call this function.
     /**
      * Set the string.
-     * @param str - string to set
+     * @param str
      */
     public str(str: string): StringBuilder;
     public str(str?: string): string | StringBuilder {
@@ -340,25 +293,10 @@ export class StringBuilder {
 
 
     /**
-     * @overload
-     * Append a string to the end of the StringBuilder.
-     * @param str
-     */
-    append(str: string): StringBuilder;
-    /**
-     * @overload
-     * Append an array of utf-16 char codes to the end of the StringBuilder.
-     * @param charCodes - array of single utf-16 character codes to add
-     * @returns Stringbuilder for chained calls.
-     */
-    append(charCodes: ArrayLike<number>): StringBuilder;
-    /**
-     * @overload
      * Append an array of chars to the end of the StringBuilder.
-     * @param chars - array of single character strings to add
-     * @returns Stringbuilder for chained calls.
+     * @param str - a string or array of single character strings or char codes to add
+     * @returns This Stringbuilder for chained calls.
      */
-    append(chars: ArrayLike<string>): StringBuilder;
     public append(str: string | ArrayLike<number> | ArrayLike<string>): StringBuilder {
         if (str.length === 0) return this;
         this._applyPrepend();
@@ -465,8 +403,9 @@ export class StringBuilder {
 
     /**
      * Get character at the given index.
-     *
-     * @param index - character index in string – negative numbers count backward from last index: `length + index`
+     * For character code see {@link StringBuilder.charCodeAt}.
+     * @param index - character index in string –
+     * negative numbers count backward from last index: `length + index`
      * @throws RangeError on invalid index
      */
     charAt(index: number): string {
@@ -476,9 +415,10 @@ export class StringBuilder {
     }
 
     /**
-     * Gets character code at the given index.
-     * Negative numbers count from last index: length + index
-     * @param index
+     * Get character code at the given index.
+     * For character string see {@link StringBuilder.charAt}.
+     * @param index - character code index in string –
+     * negative numbers count backward from last index: `length + index`
      * @throws RangeError on invalid index
      */
     charCodeAt(index: number): number {
@@ -488,31 +428,31 @@ export class StringBuilder {
     }
 
     /**
-     * Check for equality
-     * @param str
+     * Check for equality.
+     * @param value
      */
-    equals(str: string | StringBuilder | ArrayLike<number> | ArrayLike<string>): boolean {
+    equals(value: string | StringBuilder | ArrayLike<number> | ArrayLike<string>): boolean {
         this._applyPrepend();
 
-        if (str.length !== this._length) return false;
-        if (str.length === 0 && this._length === 0) return true;
+        if (value.length !== this._length) return false;
+        if (value.length === 0 && this._length === 0) return true;
 
-        if (str instanceof StringBuilder || typeof str === "string") {
-            if (Object.is(this, str)) return true;
+        if (value instanceof StringBuilder || typeof value === "string") {
+            if (Object.is(this, value)) return true;
 
-            for (let i = 0; i < str.length; ++i) {
-                if (str.charCodeAt(i) !== this._str[i])
+            for (let i = 0; i < value.length; ++i) {
+                if (value.charCodeAt(i) !== this._str[i])
                     return false;
             }
         } else {
-            if (isNumArr(str)) {
-                for (let i = 0; i < str.length; ++i) {
-                    if (str[i] !== this._str[i])
+            if (isNumArr(value)) {
+                for (let i = 0; i < value.length; ++i) {
+                    if (value[i] !== this._str[i])
                         return false;
                 }
             } else {
-                for (let i = 0; i < str.length; ++i) {
-                    if (str[i].charCodeAt(0) !== this._str[i])
+                for (let i = 0; i < value.length; ++i) {
+                    if (value[i].charCodeAt(0) !== this._str[i])
                         return false;
                 }
             }
@@ -533,7 +473,6 @@ export class StringBuilder {
      * const sb = new StringBuilder("abc");
      * console.log(sb) // "abc"
      * ```
-     *
      */
     toString(): string {
         return this.str();
@@ -630,14 +569,15 @@ export class StringBuilder {
      * Get the index of the first occurrence of a string or RegExp.
      * @param query - query to find
      * @param startAt - start position to search from. Default: 0
-     * @param end - optional end index to search until. Does not this search index.
-     * Default: reaches end of string.
+     * @param end - optional end index to search up to (does not search this index).
+     * Left unspecified, the function will search until the end of the string.
      * @returns index of the first occurrence or -1 if it does not exist.
-     * @throws RangeError if `startingAt` is out of range. `end` may exceed range.
+     * @throws RangeError if `startingAt` is out of range; `end` may exceed range.
      */
     search(query: RegExp | string, startAt = 0, end?: number): number {
         if (this._length === 0) return -1;
 
+        // validate `startAt`
         try {
             startAt = this._validateIndex(startAt, false);
         } catch(err: unknown) {
@@ -645,7 +585,11 @@ export class StringBuilder {
             throw err;
         }
 
+        // Differing behavior for `string` & `RegExp`
         if (typeof query === "string") {
+            // string behavior
+
+            // validation checks
             if (query.length === 0 || this._length === 0) return -1;
 
             if (end === undefined) {
@@ -661,7 +605,7 @@ export class StringBuilder {
                 throw err;
             }
 
-
+            // manually check for matches
             for (let i = startAt; i < end; ++i) {
                 let match = true;
                 for (let j = 0; j < query.length; ++j) {
@@ -675,15 +619,25 @@ export class StringBuilder {
                     return i;
             }
 
+            // no match was found...
             return -1;
         } else {
+            // RegExp behavior
+
+            // set and validate `end`
             if (end === undefined)
                 end = this._length;
-            else
-                end = this._validateIndex(end, true);
+            else {
+                try {
+                    end = this._validateIndex(end, true);
+                } catch (e) {
+                    console.error("[StringBuilder.search: end]", e);
+                    throw e;
+                }
+            }
 
+            // directly use `String.search`
             const res = this.substring(startAt, end).search(query);
-
             return res === -1 ? -1 : res + startAt;
         }
     }
@@ -697,7 +651,6 @@ export class StringBuilder {
      * @throws RangeError if index is out of range.
      */
     private _validateIndex(index: number, allowEnd = false): number {
-
         if (index < 0)
             index += this._length;
 
