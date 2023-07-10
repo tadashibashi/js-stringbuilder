@@ -1,4 +1,4 @@
-const StringBuilderMinSize = 24;
+const StringBuilderMinSize: number = 24;
 
 /**
  * A dynamic string builder for efficient char manipulation.
@@ -10,27 +10,43 @@ const StringBuilderMinSize = 24;
 export class StringBuilder {
     // ===== Class variables ==================================================
 
-    // Static decoder to convert buffer to utf-16 strings
+    /**
+     * Static decoder to convert buffer to utf-16 strings
+     */
     protected static decoder: TextDecoder;
 
 
     // ===== Instance variables ===============================================
 
-    // Internal string buffer, JS String uses utf-16 encoding
+    /**
+     * Internal string buffer, JS String uses utf-16 encoding
+     */
     private _str: Uint16Array;
 
-    // "Pointer" to end of string, since buffer is usually larger
+    /**
+     * "Pointer" to end of string, since buffer is usually larger
+     */
     private _length: number;
 
-    // Temp buffer for efficient prepending, left undefined, it
-    // will go unused.
+    /**
+     * Temp buffer for efficient prepending, left undefined, it
+     * will go unused.
+     */
     private readonly _toPrepend?: StringBuilder;
 
     // These temp vars make it efficient to call str() multiple times
-    // without having to regenerate string with decoder every time.
-    private _temp: string;     // temp string stored for easy access
-    private _isDirty: boolean; // flagged when string has changed, signals
-                               // necessary update to `_temp` in calls to str()
+    // without having to convert the string with decoder every time.
+    // May remove later, since it adds complexity to the code...
+    /**
+     * Temporary string stored for quick reaccess.
+     */
+    private _temp: string;
+
+    /**
+     * Flagged when string has changed, signals necessary update to
+     * `_temp` in calls to str()
+     */
+    private _isDirty: boolean;
 
 
     // ===== constructor ======================================================
@@ -40,7 +56,7 @@ export class StringBuilder {
      * @param usePrependBuffer - whether to use prepend buffer optimization;
      * default: `true`
      */
-    constructor(strOrSize?: string | number, usePrependBuffer = true) {
+    constructor(strOrSize: string | number = StringBuilderMinSize, usePrependBuffer = true) {
         this._length = 0;
         this._isDirty = false;
         this._temp = "";
@@ -53,16 +69,15 @@ export class StringBuilder {
 
 
         if (strOrSize) {
-            if (typeof strOrSize === "string") {
+            if (typeof strOrSize === "string") { // set the string
                 this._str = new Uint16Array(Math.max((strOrSize.length + 1) * 2, StringBuilderMinSize));
                 this.str(strOrSize);
-            } else {
+            } else {                             // set the size
                 this._str = new Uint16Array(Math.max(strOrSize, StringBuilderMinSize));
             }
-        } else {
-            this._str = new Uint16Array(StringBuilderMinSize);
         }
 
+        // init static decoder if not yet created
         if (!StringBuilder.decoder) {
             StringBuilder.decoder = new TextDecoder("utf-16");
         }
