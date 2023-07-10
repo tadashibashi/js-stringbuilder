@@ -1,6 +1,6 @@
-# JavaScript StringBuilder
+![logo](logo.png)
 
-A dynamic string class for efficient manipulation
+### *A dynamic string class for efficient manipulation*
 - Array-like flexibility to control strings
 - Automatic memory management with ability to allocate or shrink space as needed.
 - Convenient API
