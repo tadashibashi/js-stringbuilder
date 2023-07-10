@@ -1,4 +1,4 @@
-import {StringBuilder} from "../StringBuilder"
+import {StringBuilder} from "../../StringBuilder"
 
 describe("insert tests", () => {
     test("index out-of-range", () => {

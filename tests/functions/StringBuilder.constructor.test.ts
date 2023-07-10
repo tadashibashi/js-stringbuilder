@@ -1,4 +1,4 @@
-import {StringBuilder} from "../StringBuilder";
+import {StringBuilder} from "../../StringBuilder";
 
 test("constructor: string", () => {
     const sb = new StringBuilder("01234");

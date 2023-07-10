@@ -1,4 +1,4 @@
-import {StringBuilder} from "../StringBuilder";
+import {StringBuilder} from "../../StringBuilder";
 
 describe("charAt", () => {
     test("index out-of-range", () => {

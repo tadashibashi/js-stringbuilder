@@ -1,4 +1,4 @@
-import {StringBuilder} from "../StringBuilder";
+import {StringBuilder} from "../../StringBuilder";
 
 const testLength = 250_000;
 let testStr = '';

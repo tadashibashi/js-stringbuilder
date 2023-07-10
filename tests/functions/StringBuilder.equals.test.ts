@@ -1,4 +1,4 @@
-import {StringBuilder} from "../StringBuilder";
+import {StringBuilder} from "../../StringBuilder";
 
 test("equals: empty string", () => {
     const sb = new StringBuilder();

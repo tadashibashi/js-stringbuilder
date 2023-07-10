@@ -3,7 +3,8 @@
   "version": "0.0.1",
   "packageManager": "yarn@3.6.1",
   "scripts": {
-    "test": "jest",
+    "test": "jest tests/functions",
+    "test:perf": "jest tests/performance",
     "build": "tsc"
   },
   "devDependencies": {

@@ -1,4 +1,4 @@
-import {StringBuilder} from "../StringBuilder";
+import {StringBuilder} from "../../StringBuilder";
 
 describe("prepend", () => {
     test("followed by call to str returns text correctly", () => {

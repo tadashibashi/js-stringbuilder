@@ -1,4 +1,4 @@
-import {StringBuilder} from "../StringBuilder"
+import {StringBuilder} from "../../StringBuilder"
 
 describe("search: string", () => {
      test("find single char", () => {

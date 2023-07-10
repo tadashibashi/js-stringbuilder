@@ -73,7 +73,7 @@ let str = stringBuilder.str(); // "0abc234"
 
 These metrics were tested in Node v20.3.1 on an ARM MacOS 13.
 
-To run the tests on your own machine: via `yarn test` or `npm run test`
+To run the tests on your own machine use: `yarn test:perf` or `npm run test:perf`
 
 Please let me know if there is any performance issue on your system :-)
 

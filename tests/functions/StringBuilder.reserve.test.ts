@@ -1,4 +1,4 @@
-import {StringBuilder} from "../StringBuilder";
+import {StringBuilder} from "../../StringBuilder";
 
 describe("reserving", () => {
     test("1000 increases buffer length to 1000 or more", () => {
