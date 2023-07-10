@@ -7,14 +7,14 @@ A dynamic string class for efficient manipulation
     - negative indices behave like Python
     - extends the String interface (work in-progress)
 
-## Why
+## Reason for StringBuilder
 JavaScript strings are immutable primitives that create garbage for every unique 
 sequence generated via concatenation, slicing, etc.
 
 StringBuilder attempts to provide an efficient way to dynamically 
 build JavaScript strings, friendly toward the garbage collector.
 
-## Getting Started
+## Installation
 Build JavaScript and type information files to `lib/`:
 
 with yarn:
@@ -27,6 +27,18 @@ with npm:
 ```shell
 npm i
 npm run build
+```
+
+To build the docs:
+
+with yarn:
+```shell
+yarn docs
+```
+
+with npm:
+```shell
+npm run docs
 ```
 
 ## Example Usage
