@@ -86,12 +86,6 @@ Hosted here: https://code.aaronishibashi.com/js-stringbuilder
 
 ## Performance Comparison
 
-<style>
-  td {
-    padding: 0 1vmin;
-    text-align: right;
-  }
-</style>
 
 |                         | StringBuilder                               | String                                     | Array\<string\>                            |
 |-------------------------|---------------------------------------------|--------------------------------------------|--------------------------------------------|
@@ -106,6 +100,7 @@ Hosted here: https://code.aaronishibashi.com/js-stringbuilder
 | 1 million char appends   | <span style="color:green">6.90ms</span>  | 51.77ms                                    | 30.11ms                                    |
 | 1 million mid-insertions | 9,735.18ms                               | <span style="color:red">72,645.41ms</span> | <span style="color:red">88,937.65ms</span> |
 | 1 million char prepends  | <span style="color:green">38.18ms</span> | 52.75ms                                    | <span style="color:red">80,454.23ms</span> |
+
 
 These metrics were tested in Node v20.3.1 on an ARM MacOS 13.
 
