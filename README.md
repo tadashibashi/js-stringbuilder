@@ -59,17 +59,17 @@ let str = stringBuilder.str(); // "0abc234"
 
 ## Performance Comparison
 
-|                        | StringBuilder                              | String                                    | Array\<string\>                           |
-|------------------------|--------------------------------------------|-------------------------------------------|-------------------------------------------|
-| 500,000 char appends   | <span style="color:green">5.26ms</span>    | 22.55ms                                   | 17.65ms                                   |
-| 500,000 mid-insertions | <span style="color:green">2465.29ms</span> | <span style="color:red">20761.87ms</span> | 9658.66ms                                 |
-| 500,000 char prepends  | <span style="color:green">7.38ms</span>    | 25.65ms                                   | <span style="color:red">19334.63ms</span> |
+|                         | StringBuilder                              | String                                    | Array\<string\>                           |
+|-------------------------|--------------------------------------------|-------------------------------------------|-------------------------------------------|
+| 500,000 char appends    | <span style="color:green">5.26ms</span>    | 22.55ms                                   | 17.65ms                                   |
+| 500,000 mid-insertions  | <span style="color:green">2465.29ms</span> | <span style="color:red">20761.87ms</span> | 9658.66ms                                 |
+| 500,000 char prepends   | <span style="color:green">7.38ms</span>    | 25.65ms                                   | <span style="color:red">19334.63ms</span> |
 
-|                      | StringBuilder                            | String                                    | Array\<string\>                           |
-|----------------------|------------------------------------------|-------------------------------------------|-------------------------------------------|
-| 1mill char appends   | <span style="color:green">6.90ms</span>  | 51.77ms                                   | 30.11ms                                   |
-| 1mill mid-insertions | 9735.18ms                                | <span style="color:red">72645.41ms</span> | <span style="color:red">88937.65ms</span> |
-| 1mill char prepends  | <span style="color:green">38.18ms</span> | 52.75ms                                   | <span style="color:red">80454.23ms</span> |
+|                         | StringBuilder                            | String                                    | Array\<string\>                           |
+|-------------------------|------------------------------------------|-------------------------------------------|-------------------------------------------|
+| 1million char appends   | <span style="color:green">6.90ms</span>  | 51.77ms                                   | 30.11ms                                   |
+| 1million mid-insertions | 9735.18ms                                | <span style="color:red">72645.41ms</span> | <span style="color:red">88937.65ms</span> |
+| 1million char prepends  | <span style="color:green">38.18ms</span> | 52.75ms                                   | <span style="color:red">80454.23ms</span> |
 
 These metrics were tested in Node v20.3.1 on an ARM MacOS 13.
 
