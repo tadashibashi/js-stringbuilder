@@ -1,11 +1,19 @@
 ![logo](https://raw.githubusercontent.com/tadashibashi/js-stringbuilder/main/logo.png)
 
 ### *A dynamic string class for efficient manipulation*
+
 - Array-like flexibility to control strings
 - Automatic memory management with ability to allocate or shrink space as needed.
 - Convenient API
     - negative indices behave like Python
     - extends the String interface (work in-progress)
+
+## Tools
+
+![TypeScript](https://img.shields.io/badge/typescript-%23007ACC.svg?style=for-the-badge&logo=typescript&logoColor=white)
+![JavaScript](https://img.shields.io/badge/javascript-%23323330.svg?style=for-the-badge&logo=javascript&logoColor=%23F7DF1E)
+![Jest](https://img.shields.io/badge/-jest-%23C21325?style=for-the-badge&logo=jest&logoColor=white)
+![Typedoc](https://img.shields.io/badge/TypeDoc-a?style=for-the-badge&logo=data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAAA21BMVEUAAAD///+WAP8MNk+ZzP+WAP8MNk+ZzP+WAP8MNk+ZzP+WAP8MNk+ZzP+WAP+ZzP8MNk+WAP8MNk+ZzP+WAP8MNk+ZzP+WAP8MNk+ZzP+WAP8MNk+ZzP+WAP+ZzP8MNk+WAP8MNk+ZzP8MNk+ZzP+WAP8VM1q1TP+ubP+FB+mNA/SaCv+zR/+zVP9IHpygrP+iHf+ipP+eE/+gGP9AIpGYBf8vKXsdL2WbxP+cr/+dvP+knP+mJv+nK/+njP+pMP+phP+rfP+tOf90DtOxQ/+yXP9RG6diFL1rEcjgV5TeAAAAI3RSTlMAABAQECAgIEBAQGBgYICAgI+Pj5+fn7+/v8/Pz9/f3+/v765wmakAAADxSURBVHhehdPXUsMwEIZR4yTgFJwEAoE0nOzKTu/03nn/J4o0Yw07Yr18d5o9l/q9vX8ywCP5Pn39BWEUhQIod5WuW84AQUultQIGBE1FagYOKDSUU6NAgF9XTHXfgjBSbFGYgsdLHoznKUimDwwZf8VgQZJMly74jgF+ge5jQ8HPNegIML2tLXi/AmCAJhMDRvZMge15MtoCCOD1NgYBDO8QIRsMF4gC+FwhCmB2jyiA2dMNSuBFn0VQHfCgX0uBlz/mwFGOfLmDUxec7Du7KJ1TcFZkdlHqWNAuZgznsGfARUWYXnXQr4nb9PI5ZrxiO45CUxeYFr2zAAAAAElFTkSuQmCC&color=gray)
 
 ## Interest in StringBuilder
 JavaScript strings are immutable primitives that create garbage for every unique 
