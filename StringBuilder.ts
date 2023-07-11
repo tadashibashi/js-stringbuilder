@@ -486,8 +486,6 @@ export class StringBuilder {
      * @param index - index at which to start copying string.
      */
     private _writeString(str: string, index: number) {
-        this._applyPrepend();
-
         for (let i = 0; i < str.length; ++i) {
             this._str[i + index] = str.charCodeAt(i);
         }
@@ -497,6 +495,11 @@ export class StringBuilder {
 
     // ===== Get / Read =======================================================
 
+    *[Symbol.iterator]() {
+        for (let i = 0; i < this._length; ++i) {
+            yield this.charAt(i);
+        }
+    }
 
     get buffer() {
         return this._str.subarray(0, this._length);
@@ -506,13 +509,11 @@ export class StringBuilder {
      * The length of the internal buffer in chars.
      */
     get bufferLength(): number {
-        this._applyPrepend();
-
-        return this._str.length;
+        return this._str.length + (this._toPrepend ? this._toPrepend._str.length : 0);
     }
 
     get bufferBytes(): number {
-        return this._str.length * this.bytesPerChar;
+        return this.bufferLength * this.bytesPerChar;
     }
 
     get bytesPerChar(): number {
