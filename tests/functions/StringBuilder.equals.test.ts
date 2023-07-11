@@ -76,3 +76,19 @@ test("equals: StringBuilder string", () => {
     expect(diff.equals(b)).toBe(false);
     expect(diff.equals(diff)).toBe(true);
 });
+
+test("equals: StringBuilder string, with prepends vs all appends", () => {
+    const str = "abc123";
+    const a = new StringBuilder();
+    const b = new StringBuilder();
+
+    a.append("abc123");
+    b.prepend("abc");
+    b.append("123");
+
+    expect(a.equals(b)).toBe(true);
+    expect(b.equals(a)).toBe(true);
+    expect(a.equals(a)).toBe(true);
+    expect(a.equals(str)).toBe(true);
+    expect(b.equals(str)).toBe(true);
+});
