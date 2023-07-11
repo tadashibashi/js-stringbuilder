@@ -529,9 +529,15 @@ export class StringBuilder {
      * @throws RangeError on invalid index
      */
     charAt(index: number): string {
-        this._applyPrepend();
         index = this._validateIndex(index);
-        return String.fromCharCode(this._str[index]);
+
+        if (this._toPrepend) {
+            return (index < this._toPrepend._length) ?
+                this._toPrepend.charAt(this._toPrepend._length-1-index) :
+                String.fromCharCode(this._str[index - this._toPrepend._length]);
+        } else {
+            return String.fromCharCode(this._str[index]);
+        }
     }
 
     /**
@@ -542,9 +548,15 @@ export class StringBuilder {
      * @throws RangeError on invalid index
      */
     charCodeAt(index: number): number {
-        this._applyPrepend();
         index = this._validateIndex(index);
-        return this._str[index];
+
+        if (this._toPrepend) {
+            return (index < this._toPrepend._length) ?
+                this._toPrepend._str[this._toPrepend._length-1-index] :
+                this._str[index - this._toPrepend._length];
+        } else {
+            return this._str[index];
+        }
     }
 
     /**
@@ -552,27 +564,26 @@ export class StringBuilder {
      * @param value
      */
     equals(value: string | StringBuilder | ArrayLike<number> | ArrayLike<string>): boolean {
-        this._applyPrepend();
 
-        if (value.length !== this._length) return false;
-        if (value.length === 0 && this._length === 0) return true;
+        if (value.length !== this.length) return false;
+        if (value.length === 0 && this.length === 0) return true;
 
         if (value instanceof StringBuilder || typeof value === "string") {
             if (Object.is(this, value)) return true;
 
             for (let i = 0; i < value.length; ++i) {
-                if (value.charCodeAt(i) !== this._str[i])
+                if (value.charCodeAt(i) !== this.charCodeAt(i))
                     return false;
             }
         } else {
             if (isNumArr(value)) {
                 for (let i = 0; i < value.length; ++i) {
-                    if (value[i] !== this._str[i])
+                    if (value[i] !== this.charCodeAt(i))
                         return false;
                 }
             } else {
                 for (let i = 0; i < value.length; ++i) {
-                    if (value[i].charCodeAt(0) !== this._str[i])
+                    if (value[i].charCodeAt(0) !== this.charCodeAt(i))
                         return false;
                 }
             }
