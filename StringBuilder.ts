@@ -97,17 +97,18 @@ export class StringBuilder {
      */
     append(strOrArray: string | number | ArrayLike<number> | ArrayLike<string>): StringBuilder {
         if (typeof strOrArray === "number") {
-            this._applyPrepend();
-            this._expand(this._length + 1);
+
+            this._expand(this.length + 1);
             this._str[this._length] = strOrArray;
 
+            ++this._length;
             this._isDirty = true;
             return this;
         }
 
         if (strOrArray.length === 0) return this;
-        this._applyPrepend();
-        this._expand(this._length + strOrArray.length);
+
+        this._expand(this.length + strOrArray.length);
 
         if (typeof strOrArray === "string") {
             this._writeString(strOrArray, this._length);
@@ -250,7 +251,7 @@ export class StringBuilder {
      * @returns This StringBuilder instance for chained calls
      */
     reserve(size: number): StringBuilder {
-        this._applyPrepend();
+        this._applyPrepend(); // <- not sure if we should remove this?
         this._expand(size);
         return this;
     }
@@ -283,7 +284,7 @@ export class StringBuilder {
      * ```
      */
     splice(index: number, delCount: number, toAdd: string | number | ArrayLike<string> | ArrayLike<number> = ""): StringBuilder {
-        this._applyPrepend();
+        this._applyPrepend(); // TODO: optimize so that we don't need this call
 
         const objLength = typeof toAdd === "number" ? 1 : toAdd.length;
 
@@ -409,7 +410,7 @@ export class StringBuilder {
     write(index: number, strOrArray: string | ArrayLike<string> | ArrayLike<number>): StringBuilder {
         if (strOrArray.length === 0) return this;
 
-        this._applyPrepend();
+        this._applyPrepend(); // TODO: Write into prepend buffer if necessary, then remove this call to _applyPrepend
 
         const newLength = Math.max(index + strOrArray.length, this._length);
         this._expand(newLength);
@@ -601,7 +602,7 @@ export class StringBuilder {
     /**
      * Iterates over a callback for each character in the string.
      * @param callback - called for each character, if it returns -1, it will break the loop.
-     * @param context  - optional context to bind `this` to.
+     * @param context  - optional context to bind `this` to; assumes callback is a Function
      * @returns This StringBuilder to chain calls.
      * ```js
      * stringBuilder.forEach(function(char, i) {
@@ -619,7 +620,7 @@ export class StringBuilder {
         }
 
         for (let i = 0; i < this._length; ++i) {
-            if (callback(String.fromCharCode(this._str[i]), i, this) === -1)
+            if (callback(this.charAt(i), i, this) === -1)
                 break;
         }
 
@@ -632,8 +633,7 @@ export class StringBuilder {
      * For buffer length, see {@link StringBuilder.bufferLength}
      */
     get length(): number {
-        this._applyPrepend();
-        return this._length;
+        return this._length + (this._toPrepend ? this._toPrepend._length : 0);
     }
 
 
@@ -696,13 +696,11 @@ export class StringBuilder {
      * ```
      */
     toArray(): Array<string> {
-        this._applyPrepend();
-
         const ret = new Array<string>(this.length);
         const length = this._length;
 
         for (let i = 0; i < length; ++i) {
-            ret[i] = String.fromCharCode(this._str[i]);
+            ret[i] = this.charAt(i);
         }
 
         return ret;
@@ -747,16 +745,16 @@ export class StringBuilder {
         }
 
         // Differing behavior for `string` & `RegExp`
-        if (typeof query === "string") {
-            // string behavior
+        if (typeof query === "string") {   // String
 
             // validation checks
-            if (query.length === 0 || this._length === 0) return -1;
+            if (query.length === 0 || this.length === 0) return -1;
 
+            // set and validate `end`
             if (end === undefined) {
-                end = this._length - query.length + 1;
+                end = this.length - query.length + 1;
             } else {
-                end = Math.min(end, this._length - query.length + 1);
+                end = Math.min(end, this.length - query.length + 1);
             }
 
             try {
@@ -771,7 +769,7 @@ export class StringBuilder {
             for (let i = startAt; i < end; ++i) {
                 let match = true;
                 for (let j = 0; j < query.length; ++j) {
-                    if (this._str[i + j] !== query.charCodeAt(j)) {
+                    if (this.charCodeAt(i + j) !== query.charCodeAt(j)) {
                         match = false;
                         break;
                     }
@@ -783,12 +781,11 @@ export class StringBuilder {
 
             // no match was found...
             return -1;
-        } else {
-            // RegExp behavior
+        } else {          // RegExp behavior
 
             // set and validate `end`
             if (end === undefined)
-                end = this._length;
+                end = this.length;
             else {
                 try {
                     end = this._validateIndex(end, true);
@@ -800,7 +797,7 @@ export class StringBuilder {
             }
 
             // directly use `String.search`
-            const res = this.substring(startAt, end).search(query);
+            const res = this.substring(startAt, end).search(query); // substring calls _applyPrepend
             return res === -1 ? -1 : res + startAt;
         }
     }
@@ -815,9 +812,9 @@ export class StringBuilder {
      */
     private _validateIndex(index: number, allowEnd = false): number {
         if (index < 0)
-            index += this._length;
+            index += this.length;
 
-        if (index >= this._length + (allowEnd ? 1 : 0) || index < 0)
+        if (index >= this.length + (allowEnd ? 1 : 0) || index < 0)
             throw RangeError(`index ${index} is out of range.`);
         return index;
     }
