@@ -327,17 +327,17 @@ export class StringBuilder {
      * @returns This StringBuilder to chain calls.
      */
     shrink() {
-        this._applyPrepend();
+        if (this._toPrepend)
+            this._toPrepend.shrink();
 
-        const newBufLength = Math.max(StringBuilderMinSize, (this._length + 1) * 2);
+        // Use length getter to include prepend buffer length.
+        // We don't want the next call to str to cause reallocation
+        const newBufLength = Math.max(StringBuilderMinSize, (this.length + 1) * 2);
         if (this._str.length < newBufLength) return this;
 
         const temp = this._str;
         this._str = new this._type(newBufLength);
         this._str.set(temp.subarray(0, this._length));
-
-        if (this._toPrepend)
-            this._toPrepend.shrink();
 
         return this;
     }
