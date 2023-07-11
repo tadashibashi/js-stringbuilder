@@ -1,4 +1,4 @@
-const StringBuilderMinSize: number = 24;
+export const StringBuilderMinSize: number = 24;
 
 /**
  * A dynamic string builder for efficient char manipulation.
@@ -819,3 +819,5 @@ export class StringBuilder {
         return index;
     }
 }
+
+export default StringBuilder;

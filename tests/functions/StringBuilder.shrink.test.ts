@@ -1,4 +1,4 @@
-import {StringBuilder} from "../../StringBuilder";
+import {StringBuilder, StringBuilderMinSize} from "../../StringBuilder";
 
 const testLength = 250_000;
 let testStr = '';
@@ -17,7 +17,9 @@ describe("shink", () => {
          expect(sb.bufferLength).toBeGreaterThanOrEqual(testLength); // maintain size until shrink
 
          sb.shrink();
-         expect(sb.bufferLength).toBe(54); // current algo: (length + 1) * 2
+
+         // current algo: (length + 1) * 2 + include the Prepend Buffer size <-- this kind of hardcoded test is bad?!...
+         expect(sb.bufferLength).toBe((newStr.length + 1) * 2 + StringBuilderMinSize);
          expect(sb.str()).toBe(newStr);
          expect(sb.length).toBe(newStr.length);
      });
