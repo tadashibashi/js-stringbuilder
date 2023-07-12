@@ -3,10 +3,13 @@
 ### *A dynamic string class for efficient manipulation*
 
 - Array-like flexibility to control strings
-- Automatic memory management with ability to allocate or shrink space as needed.
+- Significantly faster than JS string concatenation and split Array handling
+- Automatic memory management with ability to allocate or shrink space as needed
+
 - Convenient API
     - negative indices behave like Python
     - extends the String interface (work in-progress)
+    - [documentation available](https://code.aaronishibashi.com/js-stringbuilder)
 
 Main repository hosted on [GitHub](https://github.com/tadashibashi/js-stringbuilder).
 
