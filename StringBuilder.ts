@@ -145,7 +145,7 @@ export class StringBuilder {
      * @param strOrArray - string or array to insert.
      */
     insert(index: number, strOrArray: string | number | ArrayLike<string> | ArrayLike<number>): StringBuilder {
-        if (index === 0)
+        if (index === 0 && this._toPrepend)
             this.prepend(strOrArray);
         else
             this.splice(index, 0, strOrArray);
