@@ -140,13 +140,17 @@ export class StringBuilder {
 
     /**
      * Copy and insert a given string or array at a specified index.
-     * If inserting at position 0, please use {@link StringBuilder.prepend} instead.
      * @param index - character index at which to insert –
      * negative values count backward from end: `length + index`
      * @param strOrArray - string or array to insert.
      */
     insert(index: number, strOrArray: string | number | ArrayLike<string> | ArrayLike<number>): StringBuilder {
-        return this.splice(index, 0, strOrArray);
+        if (index === 0)
+            this.prepend(strOrArray);
+        else
+            this.splice(index, 0, strOrArray);
+
+        return this;
     }
 
 
