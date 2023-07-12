@@ -503,6 +503,7 @@ export class StringBuilder {
     }
 
     get buffer() {
+        this._applyPrepend();
         return this._str.subarray(0, this._length);
     }
 
@@ -733,7 +734,7 @@ export class StringBuilder {
      * @throws RangeError if `startingAt` is out of range; `end` may exceed range.
      */
     search(query: RegExp | string, startAt = 0, end?: number): number {
-        if (this._length === 0) return -1;
+        if (this.length === 0) return -1;
 
         // validate `startAt`
         try {
@@ -748,7 +749,7 @@ export class StringBuilder {
         if (typeof query === "string") {   // String
 
             // validation checks
-            if (query.length === 0 || this.length === 0) return -1;
+            if (query.length === 0) return -1;
 
             // set and validate `end`
             if (end === undefined) {

@@ -9,7 +9,7 @@
     "build": "tsc",
     "docs:watch": "typedoc --options typedoc.json --watch",
     "docs": "typedoc --options typedoc.json",
-    "deploy:docs": "ts-node deploy-docs.ts"
+    "deploy:docs": "ts-node scripts/deploy-docs.ts -d docs -i ./.gitignore"
   },
   "devDependencies": {
     "@mxssfd/typedoc-theme": "^1.1.2",
