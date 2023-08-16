@@ -1,6 +1,6 @@
 ![logo](https://raw.githubusercontent.com/tadashibashi/js-stringbuilder/main/logo.png)
 
-### *A dynamic string class for efficient manipulation*
+### *A dynamic string class for optimal text manipulation*
 
 - Array-like flexibility to control strings
 - Significantly faster than JS string concatenation and split Array handling
@@ -10,6 +10,10 @@
     - negative indices behave like Python
     - extends the String interface (work in-progress)
     - [documentation available](https://code.aaronishibashi.com/js-stringbuilder)
+ 
+- Best Use Cases
+    - handling large streams of text
+    - altering large files
 
 Main repository hosted on [GitHub](https://github.com/tadashibashi/js-stringbuilder).
 
